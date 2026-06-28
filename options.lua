@@ -4,8 +4,16 @@ local L = fPB.L
 local db = {}
 local UpdateAllNameplates = fPB.UpdateAllNameplates
 
+-- MoP 5.5.4: use global GetSpellInfo/GetSpellTexture (multi-return), no C_Spell namespace
 local GetSpellInfo, GetSpellTexture, tonumber, pairs, table_sort, table_insert =
-  C_Spell.GetSpellInfo, C_Spell.GetSpellTexture, tonumber, pairs, table.sort, table.insert
+  GetSpellInfo, GetSpellTexture, tonumber, pairs, table.sort, table.insert
+
+-- Helper: GetSpellInfo returns (name, rank, icon, castTime, minRange, maxRange, spellID) in MoP
+local function MopGetSpellInfo(spell)
+  local name, _, _, _, _, _, spellID = GetSpellInfo(spell)
+  if not name then return nil end
+  return { name = name, spellID = spellID }
+end
 local DISABLE = DISABLE
 local chatColor = fPB.chatColor
 local linkColor = fPB.linkColor
@@ -974,7 +982,7 @@ fPB.SpellsTable = {
         if value then
           local spellID = tonumber(value)
           if spellID then
-            local spellInfo = GetSpellInfo(spellID)
+            local spellInfo = MopGetSpellInfo(spellID)
             if spellInfo then
               newSpellName = spellInfo.name
               fPB.AddNewSpell(spellID)
@@ -1023,7 +1031,7 @@ local function SpellTexture(spellID)
   end
   local correctSpellID = spellID
   if type(spellID) == "string" then
-    local spellInfo = GetSpellInfo(spellID)
+    local spellInfo = MopGetSpellInfo(spellID)
     if not spellInfo then
       return 134400 -- Inv_misc_questionmark
     end
@@ -1065,7 +1073,7 @@ function fPB.BuildSpellList()
   for i = 1, #spellList do
     local s = spellList[i]
     local Spell = Spells[s]
-    local spellInfo = GetSpellInfo(s)
+    local spellInfo = MopGetSpellInfo(s)
     local name = Spell.name and Spell.name or (spellInfo and spellInfo.name or tostring(s))
     local SpellID = Spell.spellID and Spell.spellID or (spellInfo and spellInfo.spellID or 12345)
     local spellDesc = ""
@@ -1162,12 +1170,12 @@ function fPB.BuildSpellList()
             if value then
               local spellID = tonumber(value)
               if spellID then
-                local newSpellInfo = GetSpellInfo(spellID)
+                local newSpellInfo = MopGetSpellInfo(spellID)
                 if newSpellInfo then
                   if spellID ~= Spell.spellID and newSpellInfo.name == Spell.name then -- correcting or adding the id
                     fPB.ChangeSpellID(s, spellID)
                   elseif spellID ~= Spell.spellID and newSpellInfo.name ~= Spell.name then
-                    local anotherSpellInfo = GetSpellInfo(spellID)
+                    local anotherSpellInfo = MopGetSpellInfo(spellID)
                     DEFAULT_CHAT_FRAME:AddMessage(
                       spellID
                         .. chatColor
@@ -1176,7 +1184,7 @@ function fPB.BuildSpellList()
                         .. "|Hspell:"
                         .. spellID
                         .. "|h["
-                        .. anotherSpellInfo.name
+                        .. (anotherSpellInfo and anotherSpellInfo.name or "?")
                         .. "]|h"
                         .. chatColor
                         .. L[". You can add it by using top editbox."]

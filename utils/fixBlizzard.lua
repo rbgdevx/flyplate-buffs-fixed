@@ -58,11 +58,13 @@ function fPB.FixNames()
     end
 
     frame.name:SetText(GetUnitName(frame.unit, true)) -- below almost copy of CompactUnitFrame_UpdateName
-    if CompactUnitFrame_IsTapDenied(frame) then
+    -- MoP: CompactUnitFrame_IsTapDenied / CompactUnitFrame_IsOnThreatListWithPlayer may not exist
+    if CompactUnitFrame_IsTapDenied and CompactUnitFrame_IsTapDenied(frame) then
       frame.name:SetVertexColor(0.5, 0.5, 0.5)
-    elseif frame.optionTable.colorNameBySelection then
+    elseif frame.optionTable and frame.optionTable.colorNameBySelection then
       if
         frame.optionTable.considerSelectionInCombatAsHostile
+        and CompactUnitFrame_IsOnThreatListWithPlayer
         and CompactUnitFrame_IsOnThreatListWithPlayer(frame.displayedUnit)
       then
         frame.name:SetVertexColor(1.0, 0.0, 0.0)

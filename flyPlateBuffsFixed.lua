@@ -12,12 +12,21 @@ local C_NamePlate_GetNamePlateForUnit, C_NamePlate_GetNamePlates, CreateFrame, U
   UnitPlayerControlled,
   UnitIsEnemy,
   UnitIsFriend,
-  C_Spell.GetSpellInfo,
+  GetSpellInfo,
   table.sort,
   strmatch,
   wipe,
   pairs,
   GetTime
+
+-- MoP: GetSpellInfo returns (name, rank, icon, castTime, minRange, maxRange, spellID)
+local function GetSpellName(spellID)
+  return (GetSpellInfo(spellID))
+end
+local function GetSpellIDFromInfo(spellID)
+  local name, _, _, _, _, _, id = GetSpellInfo(spellID)
+  return name and id or nil
+end
 
 local defaultLargeSpells, defaultMediumSpells, defaultHiddenSpells =
   fPB.defaultLargeSpells, fPB.defaultMediumSpells, fPB.defaultHiddenSpells
@@ -149,10 +158,10 @@ local DefaultSettings = {
 do --add default spells
   for i = 1, #defaultLargeSpells do
     local spellID = defaultLargeSpells[i]
-    local spellInfo = GetSpellInfo(spellID)
-    if spellInfo then
+    local spellName = GetSpellName(spellID)
+    if spellName then
       DefaultSettings.profile.Spells[spellID] = {
-        name = spellInfo.name,
+        name = spellName,
         spellID = spellID,
         scale = 2,
         durationSize = 18,
@@ -164,10 +173,10 @@ do --add default spells
 
   for i = 1, #defaultMediumSpells do
     local spellID = defaultMediumSpells[i]
-    local spellInfo = GetSpellInfo(spellID)
-    if spellInfo then
+    local spellName = GetSpellName(spellID)
+    if spellName then
       DefaultSettings.profile.Spells[spellID] = {
-        name = spellInfo.name,
+        name = spellName,
         spellID = spellID,
         scale = 1.5,
         durationSize = 14,
@@ -179,10 +188,10 @@ do --add default spells
 
   for i = 1, #defaultHiddenSpells do
     local spellID = defaultHiddenSpells[i]
-    local spellInfo = GetSpellInfo(spellID)
-    if spellInfo then
+    local spellName = GetSpellName(spellID)
+    if spellName then
       DefaultSettings.profile.Spells[spellID] = {
-        name = spellInfo.name,
+        name = spellName,
         spellID = spellID,
         scale = 1.0,
         durationSize = 14,
@@ -436,45 +445,27 @@ local function FilterBuffs(
   end
 end
 
+-- MoP Classic 5.5.4: UnitDebuff/UnitBuff use modern signature (NO rank field):
+-- name, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId, ...
 local function ScanUnitBuffs(nameplateID, frame)
   if PlatesBuffs[frame] then
     wipe(PlatesBuffs[frame])
   end
   local isAlly = UnitIsFriend(nameplateID, "player")
   local id = 1
-  while UnitDebuff(nameplateID, id) do
-    local aura = UnitDebuff(nameplateID, id)
-    if aura then
-      local name, icon, stack, debufftype, duration, expiration, caster, spellID =
-        aura.name,
-        aura.icon,
-        aura.applications,
-        aura.dispelName,
-        aura.duration,
-        aura.expirationTime,
-        aura.sourceUnit,
-        aura.spellId
-      FilterBuffs(isAlly, frame, "HARMFUL", name, icon, stack, debufftype, duration, expiration, caster, spellID, id)
-      id = id + 1
-    end
+  while true do
+    local name, icon, stack, debufftype, duration, expiration, caster, _, _, spellID = UnitDebuff(nameplateID, id)
+    if not name then break end
+    FilterBuffs(isAlly, frame, "HARMFUL", name, icon, stack, debufftype, duration, expiration, caster, spellID, id)
+    id = id + 1
   end
 
   id = 1
-  while UnitBuff(nameplateID, id) do
-    local aura = UnitBuff(nameplateID, id)
-    if aura then
-      local name, icon, stack, debufftype, duration, expiration, caster, spellID =
-        aura.name,
-        aura.icon,
-        aura.applications,
-        aura.dispelName,
-        aura.duration,
-        aura.expirationTime,
-        aura.sourceUnit,
-        aura.spellId
-      FilterBuffs(isAlly, frame, "HELPFUL", name, icon, stack, debufftype, duration, expiration, caster, spellID, id)
-      id = id + 1
-    end
+  while true do
+    local name, icon, stack, debufftype, duration, expiration, caster, _, _, spellID = UnitBuff(nameplateID, id)
+    if not name then break end
+    FilterBuffs(isAlly, frame, "HELPFUL", name, icon, stack, debufftype, duration, expiration, caster, spellID, id)
+    id = id + 1
   end
 end
 
@@ -614,7 +605,7 @@ local function UpdateBuffIcon(self)
 
   if db.showDuration and self.expiration > 0 then
     if db.durationPosition == 1 or db.durationPosition == 3 then
-      self.durationtext:SetFont(fPB.font, (self.durationSize or db.durationSize), "NORMAL")
+      self.durationtext:SetFont(fPB.font, (self.durationSize or db.durationSize), "")
       self.durationBg:Show()
     else
       self.durationtext:SetFont(fPB.font, (self.durationSize or db.durationSize), "OUTLINE")
@@ -624,7 +615,7 @@ local function UpdateBuffIcon(self)
   if self.stack > 1 then
     self.stacktext:SetText(tostring(self.stack))
     if db.stackPosition == 2 or db.stackPosition == 3 then
-      self.stacktext:SetFont(fPB.stackFont, (self.stackSize or db.stackSize), "NORMAL")
+      self.stacktext:SetFont(fPB.stackFont, (self.stackSize or db.stackSize), "")
       self.stackBg:SetWidth(self.stacktext:GetStringWidth())
       self.stackBg:SetHeight(self.stacktext:GetStringHeight())
       self.stackBg:Show()
@@ -662,12 +653,12 @@ local function UpdateBuffIconOptions(self, token)
     self.durationBg:ClearAllPoints()
     if db.durationPosition == 1 then
       -- under icon
-      self.durationtext:SetFont(fPB.font, (self.durationSize or db.durationSize), "NORMAL")
+      self.durationtext:SetFont(fPB.font, (self.durationSize or db.durationSize), "")
       self.durationtext:SetPoint("TOP", self, "BOTTOM", 0, -1)
       self.durationBg:SetPoint("CENTER", self.durationtext)
     elseif db.durationPosition == 3 then
       -- above icon
-      self.durationtext:SetFont(fPB.font, (self.durationSize or db.durationSize), "NORMAL")
+      self.durationtext:SetFont(fPB.font, (self.durationSize or db.durationSize), "")
       self.durationtext:SetPoint("BOTTOM", self, "TOP", 0, 1)
       self.durationBg:SetPoint("CENTER", self.durationtext)
     else
@@ -689,12 +680,12 @@ local function UpdateBuffIconOptions(self, token)
     self.stacktext:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 3)
   elseif db.stackPosition == 2 then
     -- under icon
-    self.stacktext:SetFont(fPB.stackFont, (self.stackSize or db.stackSize), "NORMAL")
+    self.stacktext:SetFont(fPB.stackFont, (self.stackSize or db.stackSize), "")
     self.stacktext:SetPoint("TOP", self, "BOTTOM", 0, -1)
     self.stackBg:SetPoint("CENTER", self.stacktext)
   else
     -- above icon
-    self.stacktext:SetFont(fPB.stackFont, (self.stackSize or db.stackSize), "NORMAL")
+    self.stacktext:SetFont(fPB.stackFont, (self.stackSize or db.stackSize), "")
     self.stacktext:SetPoint("BOTTOM", self, "TOP", 0, 1)
     self.stackBg:SetPoint("CENTER", self.stacktext)
   end
@@ -906,10 +897,7 @@ local function FixSpells()
       local name
       local spellID = tonumber(spell) and tonumber(spell) or spell.spellID
       if spellID then
-        local spellInfo = GetSpellInfo(spellID)
-        if spellInfo then
-          name = spellInfo.name
-        end
+        name = GetSpellName(spellID)
       else
         name = tostring(spell)
       end
@@ -932,8 +920,8 @@ end
 local CacheSpells = fPB.CacheSpells
 
 function fPB.AddNewSpell(spell)
-  local spellInfo = GetSpellInfo(spell)
-  local spellID = spellInfo and spellInfo.spellID or spell
+  local spellName, _, _, _, _, _, spellIDReturned = GetSpellInfo(spell)
+  local spellID = spellIDReturned or spell
 
   local defaultSpell
   if db.ignoredDefaultSpells[spellID] then
@@ -943,7 +931,7 @@ function fPB.AddNewSpell(spell)
 
   if db.Spells[spellID] and not defaultSpell then
     if spellID then
-      if spellInfo then
+      if spellName then
         DEFAULT_CHAT_FRAME:AddMessage(
           chatColor
             .. L["Spell with this ID is already in the list. Its name is "]
@@ -951,7 +939,7 @@ function fPB.AddNewSpell(spell)
             .. "|Hspell:"
             .. spellID
             .. "|h["
-            .. spellInfo.name
+            .. spellName
             .. "]|h|r"
         )
       end
@@ -961,11 +949,11 @@ function fPB.AddNewSpell(spell)
       return
     end
   end
-  if spellID and spellInfo then
+  if spellID and spellName then
     if not db.Spells[spellID] then
       db.Spells[spellID] = {
         show = 1,
-        name = spellInfo.name,
+        name = spellName,
         spellID = spellID,
         scale = 1,
         stackSize = db.stackSize,
@@ -998,8 +986,8 @@ function fPB.RemoveSpell(spell)
 end
 function fPB.ChangeSpellID(oldID, newID)
   if db.Spells[newID] then
-    local spellInfo = GetSpellInfo(newID)
-    if spellInfo then
+    local spellName = GetSpellName(newID)
+    if spellName then
       DEFAULT_CHAT_FRAME:AddMessage(
         chatColor
           .. L["Spell with this ID is already in the list. Its name is "]
@@ -1007,7 +995,7 @@ function fPB.ChangeSpellID(oldID, newID)
           .. "|Hspell:"
           .. newID
           .. "|h["
-          .. spellInfo.name
+          .. spellName
           .. "]|h|r"
       )
     end
@@ -1019,10 +1007,10 @@ function fPB.ChangeSpellID(oldID, newID)
     db.Spells[newID].spellID = newID
   end
   fPB.RemoveSpell(oldID)
-  local spellInfo = GetSpellInfo(newID)
-  if spellInfo then
+  local spellName = GetSpellName(newID)
+  if spellName then
     DEFAULT_CHAT_FRAME:AddMessage(
-      spellInfo.name
+      spellName
         .. chatColor
         .. L[" ID changed "]
         .. "|r"
@@ -1045,8 +1033,8 @@ local function ConvertDBto2()
         local spellID = s.spellID
         if not spellID then
           for i = 1, #defaultLargeSpells do
-            local spellInfo = GetSpellInfo(defaultLargeSpells[i])
-            if spellInfo and n == spellInfo.name then
+            local sname = GetSpellName(defaultLargeSpells[i])
+            if sname and n == sname then
               spellID = defaultLargeSpells[i]
               break
             end
@@ -1054,8 +1042,8 @@ local function ConvertDBto2()
         end
         if not spellID then
           for i = 1, #defaultMediumSpells do
-            local spellInfo = GetSpellInfo(defaultMediumSpells[i])
-            if spellInfo and n == spellInfo.name then
+            local sname = GetSpellName(defaultMediumSpells[i])
+            if sname and n == sname then
               spellID = defaultMediumSpells[i]
               break
             end
@@ -1067,8 +1055,7 @@ local function ConvertDBto2()
           for k, v in pairs(s) do
             temp[spell][k] = v
           end
-          local spellInfo = GetSpellInfo(spell)
-          temp[spell].name = spellInfo and spellInfo.name or n
+          temp[spell].name = GetSpellName(spell) or n
         end
       end
       p.Spells = temp
@@ -1078,16 +1065,16 @@ local function ConvertDBto2()
       for n, v in pairs(p.ignoredDefaultSpells) do
         local spellID
         for i = 1, #defaultLargeSpells do
-          local spellInfo = GetSpellInfo(defaultLargeSpells[i])
-          if spellInfo and n == spellInfo.name then
+          local sname = GetSpellName(defaultLargeSpells[i])
+          if sname and n == sname then
             spellID = defaultLargeSpells[i]
             break
           end
         end
         if not spellID then
           for i = 1, #defaultMediumSpells do
-            local spellInfo = GetSpellInfo(defaultMediumSpells[i])
-            if spellInfo and n == spellInfo.name then
+            local sname = GetSpellName(defaultMediumSpells[i])
+            if sname and n == sname then
               spellID = defaultMediumSpells[i]
               break
             end
