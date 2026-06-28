@@ -1,5 +1,10 @@
 # flyPlateBuffsFixed
 
+## [v11.2.7.2](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v11.2.7.2) (2026-06-27)
+
+- Fixing MOP errors
+- Updating tocs
+
 ## [v11.2.7.1](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v11.2.7.1) (2026-02-23)
 
 - Updating toc
