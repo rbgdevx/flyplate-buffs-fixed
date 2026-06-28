@@ -48,6 +48,7 @@ rsync -a \
   --exclude='.claude/' \
   --exclude='.vscode/' \
   --exclude='.luarc.json' \
+  --exclude='.luacheckrc' \
   --exclude='AGENTS.md' \
   --exclude='CLAUDE.md' \
   --exclude='README.md' \
