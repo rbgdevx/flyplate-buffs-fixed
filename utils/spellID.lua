@@ -1,12 +1,11 @@
 local _, fPB = ...
 function fPB.ShowSpellID()
-  -- MoP 5.5.4: UnitBuff/UnitDebuff/UnitAura return multiple values, no C_UnitAuras namespace
   local hooksecurefunc, select, UnitBuff, UnitDebuff, UnitAura =
     hooksecurefunc,
     select,
-    UnitBuff,
-    UnitDebuff,
-    UnitAura
+    C_UnitAuras.GetBuffDataByIndex,
+    C_UnitAuras.GetDebuffDataByIndex,
+    C_UnitAuras.GetAuraDataByIndex
 
   local types = {
     spell = "spell ID:",
@@ -48,27 +47,40 @@ function fPB.ShowSpellID()
 
   hooksecurefunc(GameTooltip, "SetHyperlink", onSetHyperlink)
 
-  -- MoP Classic 5.5.4: modern signature, NO rank (name, icon, count, debuffType, duration, expTime, caster, _, _, spellId, ...) -> spellId at position 10
   hooksecurefunc(GameTooltip, "SetUnitBuff", function(self, ...)
-    local _, _, _, _, _, _, _, _, _, spellId = UnitBuff(...)
-    if spellId then
-      addLine(self, spellId, types.spell)
+    local aura = UnitBuff(...)
+    if aura and aura.spellId then
+      addLine(self, aura.spellId, types.spell)
     end
   end)
 
   hooksecurefunc(GameTooltip, "SetUnitDebuff", function(self, ...)
-    local _, _, _, _, _, _, _, _, _, spellId = UnitDebuff(...)
-    if spellId then
-      addLine(self, spellId, types.spell)
+    local aura = UnitDebuff(...)
+    if aura and aura.spellId then
+      addLine(self, aura.spellId, types.spell)
     end
   end)
 
   hooksecurefunc(GameTooltip, "SetUnitAura", function(self, ...)
-    local _, _, _, _, _, _, _, _, _, spellId = UnitAura(...)
-    if spellId then
-      addLine(self, spellId, types.spell)
+    local aura = UnitAura(...)
+    if aura and aura.spellId then
+      addLine(self, aura.spellId, types.spell)
     end
   end)
 
-  -- MoP: TooltipDataProcessor does not exist; use GetSpell() fallback via SetHyperlink hook above
+  local function OnTooltipSetItem(tooltip, data)
+    local id = select(2, tooltip:GetSpell())
+    if id then
+      addLine(tooltip, id, types.spell)
+    end
+  end
+
+  -- Replace 'Enum.TooltipDataType.Item' with an appropriate type for the tooltip
+  -- data you are wanting to process; eg. use 'Enum.TooltipDataType.Spell' for
+  -- replacing usage of OnTooltipSetSpell.
+  --
+  -- If you wish to respond to all tooltip data updates, you can instead replace
+  -- the enum with 'TooltipDataProcessor.AllTypes' (or the string "ALL").
+
+  TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetItem)
 end
