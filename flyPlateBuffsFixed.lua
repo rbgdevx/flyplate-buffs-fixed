@@ -1,13 +1,12 @@
 local AddonName, fPB = ...
 L = fPB.L
 
-local C_NamePlate_GetNamePlateForUnit, C_NamePlate_GetNamePlates, CreateFrame, UnitDebuff, UnitBuff, UnitName, UnitIsUnit, UnitIsPlayer, UnitPlayerControlled, UnitIsEnemy, UnitIsFriend, GetSpellInfo, table_sort, strmatch, format, wipe, pairs, GetTime, math_floor =
+local C_NamePlate_GetNamePlateForUnit, C_NamePlate_GetNamePlates, CreateFrame, UnitDebuff, UnitBuff, UnitIsUnit, UnitIsPlayer, UnitPlayerControlled, UnitIsEnemy, UnitIsFriend, GetSpellInfo, table_sort, strmatch, wipe, pairs, GetTime =
   C_NamePlate.GetNamePlateForUnit,
   C_NamePlate.GetNamePlates,
   CreateFrame,
   C_UnitAuras.GetDebuffDataByIndex,
   C_UnitAuras.GetBuffDataByIndex,
-  UnitName,
   UnitIsUnit,
   UnitIsPlayer,
   UnitPlayerControlled,
@@ -16,11 +15,9 @@ local C_NamePlate_GetNamePlateForUnit, C_NamePlate_GetNamePlates, CreateFrame, U
   C_Spell.GetSpellInfo,
   table.sort,
   strmatch,
-  format,
   wipe,
   pairs,
-  GetTime,
-  math.floor
+  GetTime
 
 local defaultLargeSpells, defaultMediumSpells, defaultHiddenSpells =
   fPB.defaultLargeSpells, fPB.defaultMediumSpells, fPB.defaultHiddenSpells
@@ -703,10 +700,10 @@ local function UpdateBuffIconOptions(self, token)
   end
 
   if db.showTooltip then
-    self:SetScript("OnEnter", function(_self)
+    self:SetScript("OnEnter", function(self)
       if token then
-        tooltip:SetOwner(_self, "ANCHOR_LEFT")
-        tooltip:SetUnitAura(token, _self.id, _self.type)
+        tooltip:SetOwner(self, "ANCHOR_LEFT")
+        tooltip:SetUnitAura(token, self.id, self.type)
       end
     end)
     self:SetScript("OnLeave", function()
@@ -1075,7 +1072,6 @@ local function ConvertDBto2()
         end
       end
       p.Spells = temp
-      temp = nil
     end
     if p.ignoredDefaultSpells then
       temp = {}
@@ -1102,7 +1098,6 @@ local function ConvertDBto2()
         end
       end
       p.ignoredDefaultSpells = temp
-      temp = nil
     end
   end
   flyPlateBuffsFixedDB.version = 2
