@@ -1,7 +1,7 @@
 local AddonName, fPB = ...
 L = fPB.L
 
-local C_NamePlate_GetNamePlateForUnit, C_NamePlate_GetNamePlates, CreateFrame, UnitDebuff, UnitBuff, UnitIsUnit, UnitIsPlayer, UnitPlayerControlled, UnitIsEnemy, UnitIsFriend, GetSpellInfo, table_sort, strmatch, wipe, pairs, GetTime =
+local C_NamePlate_GetNamePlateForUnit, C_NamePlate_GetNamePlates, CreateFrame, UnitDebuff, UnitBuff, UnitIsUnit, UnitIsPlayer, UnitPlayerControlled, UnitIsEnemy, UnitIsFriend, UnitCanAttack, GetSpellInfo, table_sort, strmatch, wipe, pairs, GetTime =
   C_NamePlate.GetNamePlateForUnit,
   C_NamePlate.GetNamePlates,
   CreateFrame,
@@ -12,6 +12,7 @@ local C_NamePlate_GetNamePlateForUnit, C_NamePlate_GetNamePlates, CreateFrame, U
   UnitPlayerControlled,
   UnitIsEnemy,
   UnitIsFriend,
+  UnitCanAttack,
   C_Spell.GetSpellInfo,
   table.sort,
   strmatch,
@@ -440,10 +441,11 @@ local function ScanUnitBuffs(nameplateID, frame)
   if PlatesBuffs[frame] then
     wipe(PlatesBuffs[frame])
   end
-  -- A duel opponent is BOTH UnitIsFriend (same faction) and UnitIsEnemy;
-  -- treat "friend who is also attackable" as an enemy so per-spell show-on-enemy
-  -- rules apply and duel debuffs are shown.
-  local isAlly = UnitIsFriend(nameplateID, "player") and not UnitIsEnemy(nameplateID, "player")
+  -- A duel opponent is still UnitIsFriend (same faction) but becomes
+  -- attackable; UnitIsEnemy stays false in duels, so UnitCanAttack is the
+  -- check that catches it. Treat "friend you can attack" as an enemy so
+  -- per-spell show-on-enemy rules apply and duel debuffs are shown.
+  local isAlly = UnitIsFriend(nameplateID, "player") and not UnitCanAttack("player", nameplateID)
   local id = 1
   while true do
     local aura = UnitDebuff(nameplateID, id)
@@ -505,7 +507,7 @@ local function FilterUnits(nameplateID)
   end
   if
     UnitIsFriend(nameplateID, "player")
-    and not UnitIsEnemy(nameplateID, "player")
+    and not UnitCanAttack("player", nameplateID)
     and (db and not db.showOnFriend)
   then
     return true
