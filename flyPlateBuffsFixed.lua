@@ -440,7 +440,10 @@ local function ScanUnitBuffs(nameplateID, frame)
   if PlatesBuffs[frame] then
     wipe(PlatesBuffs[frame])
   end
-  local isAlly = UnitIsFriend(nameplateID, "player")
+  -- A duel opponent is BOTH UnitIsFriend (same faction) and UnitIsEnemy;
+  -- treat "friend who is also attackable" as an enemy so per-spell show-on-enemy
+  -- rules apply and duel debuffs are shown.
+  local isAlly = UnitIsFriend(nameplateID, "player") and not UnitIsEnemy(nameplateID, "player")
   local id = 1
   while true do
     local aura = UnitDebuff(nameplateID, id)
@@ -500,7 +503,11 @@ local function FilterUnits(nameplateID)
   if UnitIsEnemy(nameplateID, "player") and (db and not db.showOnEnemy) then
     return true
   end
-  if UnitIsFriend(nameplateID, "player") and (db and not db.showOnFriend) then
+  if
+    UnitIsFriend(nameplateID, "player")
+    and not UnitIsEnemy(nameplateID, "player")
+    and (db and not db.showOnFriend)
+  then
     return true
   end
   if
