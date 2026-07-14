@@ -1,5 +1,9 @@
 # flyPlateBuffsFixed
 
+## [v11.2.7.3](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v11.2.7.3) (2026-07-14)
+
+- Fixing debuffs not showing on duel opponents
+
 ## [v11.2.7.2](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v11.2.7.2) (2026-06-27)
 
 - Fixing MOP errors
