@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 # Packages this repo into a distributable zip for PC/Mac WoW clients.
+# Works on macOS and on Windows via Git Bash (no rsync/zip required there).
 #
-# Output: ../flyPlateBuffsFixed-v<version>.zip   (sibling of this repo,
-#         in the shared addons working dir).
+# Output: ../flyPlateBuffsFixed-v<version>.zip   (sibling of this repo, in the
+#         shared addons working dir).
 #
-# The zip contains a single top-level folder `flyPlateBuffsFixed/` so
-# users on Windows or Mac can extract it directly into:
+# The zip contains a single top-level folder `flyPlateBuffsFixed/`
+# so users on Windows or Mac can extract it directly into:
 #   World of Warcraft\_retail_\Interface\AddOns\
 #
-# Excludes (dev-only, not part of the addon distribution):
-#   .git/, .gitignore, .DS_Store, ._* (AppleDouble), .claude/, .vscode/,
-#   .luarc.json, AGENTS.md, CLAUDE.md, README.md, CHANGELOG.md,
-#   stylua.toml, deploy-to-wow.sh, package-addon.sh
+# Excludes (dev-only, not part of the addon distribution): see EXCLUDES below.
 #
 # Kept:
-#   .toc / .xml / .lua, libs/, locales/, utils/, texture/
+#   LICENSE, .toc / .xml / .lua, libs/, fonts/, logo/media assets
 
 set -euo pipefail
 
@@ -36,33 +34,66 @@ echo "Packaging flyPlateBuffsFixed v${version}"
 echo "   from: $SRC"
 echo "   to:   $ZIP_PATH"
 
-# --- Stage in a temp dir so the zip has a clean flyPlateBuffsFixed/ root ---
+# --- Stage in a temp dir so the zip has a clean flyPlateBuffsFixed/ root ---------
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-rsync -a \
-  --exclude='.git/' \
-  --exclude='.gitignore' \
-  --exclude='.DS_Store' \
-  --exclude='._*' \
-  --exclude='.claude/' \
-  --exclude='.vscode/' \
-  --exclude='.luarc.json' \
-  --exclude='.luacheckrc' \
-  --exclude='AGENTS.md' \
-  --exclude='CLAUDE.md' \
-  --exclude='README.md' \
-  --exclude='CHANGELOG.md' \
-  --exclude='stylua.toml' \
-  --exclude='deploy-to-wow.sh' \
-  --exclude='package-addon.sh' \
-  "$SRC/" "$STAGE/flyPlateBuffsFixed/"
+EXCLUDES=(
+  '.git'
+  '.gitignore'
+  '.gitattributes'
+  '.editorconfig'
+  '.styluaignore'
+  '.luacheckrc'
+  '.DS_Store'
+  '._*'
+  '.claude'
+  '.vscode'
+  '.luarc.json'
+  '.libraries'
+  'AGENTS.md'
+  'CLAUDE.md'
+  'REPORT.md'
+  'README.md'
+  'CHANGELOG.md'
+  'cspell.json'
+  'stylua.toml'
+  'deploy-to-wow.sh'
+  'package-addon.sh'
+)
+
+DEST="$STAGE/flyPlateBuffsFixed"
+mkdir -p "$DEST"
+
+if command -v rsync >/dev/null 2>&1; then
+  rsync_args=()
+  for e in "${EXCLUDES[@]}"; do rsync_args+=(--exclude="$e"); done
+  rsync -a "${rsync_args[@]}" "$SRC/" "$DEST/"
+else
+  # Git Bash on Windows ships no rsync; DEST is a fresh empty dir, so a plain
+  # tar pipe mirror with the same excludes is equivalent.
+  tar_args=()
+  for e in "${EXCLUDES[@]}"; do tar_args+=(--exclude="./$e"); done
+  tar -C "$SRC" "${tar_args[@]}" -cf - . | tar -C "$DEST" -xf -
+fi
 
 # --- Zip it -------------------------------------------------------------
 # COPYFILE_DISABLE=1 prevents macOS from injecting AppleDouble (._*) files
 # into the archive. -X strips extra file attrs (uid/gid/extended attrs) so
 # the archive is portable and reproducible across platforms.
+# Windows/Git Bash ships no `zip`; fall back to Windows' bundled bsdtar
+# (System32\tar.exe writes real zips via -a), then PowerShell Compress-Archive.
 rm -f "$ZIP_PATH"
-( cd "$STAGE" && COPYFILE_DISABLE=1 zip -rXq "$ZIP_PATH" "flyPlateBuffsFixed" )
+if command -v zip >/dev/null 2>&1; then
+  (cd "$STAGE" && COPYFILE_DISABLE=1 zip -rXq "$ZIP_PATH" "flyPlateBuffsFixed")
+elif [[ -x "/c/Windows/System32/tar.exe" ]]; then
+  (cd "$STAGE" && /c/Windows/System32/tar.exe -a -cf "$(cygpath -w "$ZIP_PATH")" "flyPlateBuffsFixed")
+elif command -v powershell.exe >/dev/null 2>&1; then
+  powershell.exe -NoProfile -Command \
+    "Compress-Archive -Path '$(cygpath -w "$STAGE")\\flyPlateBuffsFixed' -DestinationPath '$(cygpath -w "$ZIP_PATH")' -Force"
+else
+  echo "ERROR: no zip tool found (need zip, Windows tar.exe, or powershell.exe)." >&2
+  exit 1
+fi
 
 echo "Done. Wrote $ZIP_PATH"
