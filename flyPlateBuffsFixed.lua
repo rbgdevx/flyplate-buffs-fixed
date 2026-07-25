@@ -449,7 +449,9 @@ local function ScanUnitBuffs(nameplateID, frame)
   local id = 1
   while true do
     local aura = UnitDebuff(nameplateID, id)
-    if not aura then break end
+    if not aura then
+      break
+    end
     local name, icon, stack, debufftype, duration, expiration, caster, spellID =
       aura.name,
       aura.icon,
@@ -466,7 +468,9 @@ local function ScanUnitBuffs(nameplateID, frame)
   id = 1
   while true do
     local aura = UnitBuff(nameplateID, id)
-    if not aura then break end
+    if not aura then
+      break
+    end
     local name, icon, stack, debufftype, duration, expiration, caster, spellID =
       aura.name,
       aura.icon,
