@@ -1,10 +1,9 @@
-## Interface: 110207, 50504, 40402, 38001, 30405, 20506, 11508
+## Interface: 110207, 50504, 40402, 38001, 30405, 20506, 11509
 ## Title: flyPlateBuffsFixed
 ## Version: 11.2.7.3
 ## Author: RBGDEV
 ## Notes: Shows buffs/debuffs on nameplates
 ## SavedVariables: flyPlateBuffsFixedDB
-## Category: RBGDEV
 ## X-Category: Buffs
 ## X-Credits: FlyNeko (Original Author), collinstevens (Last Co-Author), shamilla (Last Co-Author)
 ## X-License: GNU GENERAL PUBLIC LICENSE
