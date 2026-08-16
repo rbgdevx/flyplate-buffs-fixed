@@ -1,4 +1,4 @@
-## Interface: 110207, 50504, 40402, 38001, 30405, 20506, 11509
+## Interface: 110207, 50504, 40402, 38002, 30405, 20506, 11509
 ## Title: flyPlateBuffsFixed
 ## Version: 11.2.7.4
 ## Author: RBGDEV
