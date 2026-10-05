@@ -115,7 +115,6 @@ end
 
 local function removeUnrequestedSettings(profile)
   profile.enabled = nil
-  profile.tooltipInCombat = nil
   profile.modernMaxPerGroup = nil
 
   local anchor = profile.buffAnchorPoint

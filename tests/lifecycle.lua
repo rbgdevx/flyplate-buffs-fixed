@@ -87,14 +87,19 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     assert(button and button.unit == "nameplate1")
     H.equal(button:GetWidth(), 24 * 1.2)
     H.equal(plate.UnitFrame.AurasFrame.alpha, 0, "hide native auras on supported Classic nameplates")
-    profile.showTooltip = true
+    profile.showTooltip, profile.tooltipInCombat = true, false
     ns.Settings:Apply()
     button.scripts.OnEnter(button)
     assert(state.env.GameTooltip:IsOwned(button) and state.env.GameTooltip:IsShown())
     state.combat = true
     event(nil, "PLAYER_REGEN_DISABLED")
+    assert(not state.env.GameTooltip:IsShown(), "combat hides an already-open disallowed tooltip")
     button.scripts.OnEnter(button)
-    assert(state.env.GameTooltip:IsShown(), "the existing Show tooltip choice also applies in combat")
+    assert(not state.env.GameTooltip:IsShown(), "combat tooltips stay hidden when disallowed")
+    profile.tooltipInCombat = true
+    ns.Settings:Apply()
+    button.scripts.OnEnter(button)
+    assert(state.env.GameTooltip:IsShown(), "combat tooltips are shown when allowed")
     profile.showTooltip = false
     ns.Settings:Apply()
     assert(not state.env.GameTooltip:IsShown(), "turning off Show tooltip closes the current tooltip")

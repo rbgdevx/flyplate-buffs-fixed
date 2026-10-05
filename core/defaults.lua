@@ -13,6 +13,7 @@ local Defaults = {
     showDebuffs = 2,
     showBuffs = 3,
     showTooltip = false,
+    tooltipInCombat = true,
     enemyDebuffCategories = { crowdControl = true, dispellable = true },
     friendlyBuffCategories = { defensive = true, important = true, external = true, dispellable = true },
     hidePermanent = true,

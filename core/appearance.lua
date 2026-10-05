@@ -45,6 +45,7 @@ function Appearance:Build(profile)
       colors = colors,
     },
     tooltip = profile.showTooltip,
+    tooltipInCombat = profile.tooltipInCombat,
     position = {
       anchor = profile.buffAnchorPoint,
       relativeAnchor = profile.plateAnchorPoint,
