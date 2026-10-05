@@ -16,6 +16,7 @@ local GetCVarDefault = C_CVar.GetCVarDefault
 local SetCVar = C_CVar.SetCVar
 
 local Client = fPB.Client
+local Restrictions = fPB.Restrictions
 
 local Blizzard = {}
 fPB.Blizzard = Blizzard
@@ -86,6 +87,9 @@ end
 
 function Blizzard:HideAuras(profile)
   profile.hideBlizzardAuras = true
+  if Restrictions:Active() then
+    return
+  end
   profile.blizzardAuras = profile.blizzardAuras or {}
   for _, key in ipairs(auraCVars) do
     local value = GetCVar(key)

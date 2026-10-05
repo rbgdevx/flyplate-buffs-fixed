@@ -162,15 +162,23 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     assert(ns.Settings.pending, "another aura restriction still blocks the apply")
     H.equal(scans, 1, "blocked retries do not scan")
     state.secret = false
+    local optionRefreshes, refreshOptions = 0, ns.Options.Refresh
+    ns.Options.Refresh = function(self)
+      optionRefreshes = optionRefreshes + 1
+      return refreshOptions(self)
+    end
     event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Activating)
     assert(ns.Settings.pending, "pre-activation notifications must not apply settings")
+    H.equal(optionRefreshes, 1, "activation notifies AceConfig to refresh disabled controls")
     event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Active)
     assert(ns.Settings.pending)
+    H.equal(optionRefreshes, 2, "every restriction transition refreshes options")
     event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Inactive)
     assert(not ns.Settings.pending, "restriction deactivation retries deferred settings without another combat edge")
     H.equal(scans, 2, "restriction recovery scans once")
     event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Inactive)
     H.equal(scans, 2, "no settings rebuild when nothing is pending")
+    ns.Options.Refresh = refreshOptions
 
     local startup = H.environment(interface)
     startup.secret = true

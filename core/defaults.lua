@@ -19,7 +19,7 @@ local Defaults = {
     friendlyBuffCategories = { defensive = true, important = true, external = true, dispellable = true },
     hidePermanent = true,
     notHideOnPersonalResource = true,
-    hideBlizzardAuras = true,
+    hideBlizzardAuras = false,
 
     showOnPlayers = true,
     showOnPets = true,

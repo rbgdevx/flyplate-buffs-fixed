@@ -19,8 +19,8 @@ local frame = CreateFrame("Frame", addonName .. "Frame")
 local initialized = false
 
 local function settingsChanged()
-  Blizzard:Apply(fPB.db.profile)
   Settings:Apply()
+  Blizzard:Apply(fPB.db.profile)
 end
 
 local function profileChanged()
@@ -89,16 +89,17 @@ local function onEvent(_, event, unit, update)
       if Settings.pending then
         Settings:Apply()
       end
-      Options:Refresh()
+      Blizzard:Apply(fPB.db.profile)
     end
+    Options:Refresh()
   elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_ENTERING_WORLD" then
-    Blizzard:Apply(fPB.db.profile)
     if Settings.pending then
       Settings:Apply()
     elseif Settings.ready then
       Runtime:Scan()
       Runtime:RefreshUnits()
     end
+    Blizzard:Apply(fPB.db.profile)
     Options:Refresh()
   elseif event == "PLAYER_REGEN_DISABLED" then
     if Settings.ready then
