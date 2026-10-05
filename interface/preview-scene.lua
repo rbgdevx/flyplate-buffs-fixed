@@ -30,7 +30,7 @@ fPB.PreviewScene = PreviewScene
 
 local samples = {
   { id = 118, time = 4.8, total = 8, stacks = 5, mine = true, color = "Magic", priority = 1 },
-  { id = 642, time = 7.3, total = 8, stacks = 2, mine = false, color = "Buff", priority = 2 },
+  { id = 642, time = 7.3, total = 8, stacks = 2, mine = false, color = "Buff", priority = 2, defensive = true },
   { id = 853, time = 1.3, total = 6, stacks = 3, mine = false, color = "none", priority = 1 },
   { id = 339, time = 10, total = 20, stacks = 1, mine = false, color = "Magic", priority = 3 },
   { id = 1044, time = 12, total = 16, stacks = 1, mine = true, color = "Buff", priority = 3 },
@@ -151,8 +151,14 @@ local function record(profile, sample, rule, mine, instanceID)
 end
 
 local function sortValue(entry, method)
-  if method == "Expiration" or method == "ExpirationOnly" then
+  if method == "Name" or method == "NameOnly" then
+    return entry.aura.name
+  elseif method == "Expiration" or method == "ExpirationOnly" then
     return entry.sample.time
+  elseif method == "AuraInstanceIDOnly" then
+    return entry.sample.id
+  elseif method == "BigDefensive" then
+    return entry.sample.defensive and 0 or 1
   end
   return entry.sample.priority or 1
 end
@@ -198,7 +204,7 @@ local function buildGroups(profile, selected, more)
     local key = tconcat({ style.scale, style.durationSize, style.stackSize, tostring(entry.my) }, ":")
     local group = indexed[key]
     if not group then
-      group = { records = {}, mine = entry.my, style = style, order = #groups + 1 }
+      group = { records = {}, mine = entry.my, style = style, exact = rule ~= nil, order = #groups + 1 }
       groups[#groups + 1], indexed[key] = group, group
     end
     group.records[#group.records + 1] = entry
