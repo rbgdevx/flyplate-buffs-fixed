@@ -513,7 +513,7 @@ function Helpers.environment(interface, saved)
     local plate = frame()
     plate.unit = unit
     plate.UnitFrame = frame()
-    plate.UnitFrame.BuffFrame = frame()
+    plate.UnitFrame.AurasFrame = frame()
     self.plates[unit] = plate
     self.auras[unit] = self.auras[unit] or {}
     return plate

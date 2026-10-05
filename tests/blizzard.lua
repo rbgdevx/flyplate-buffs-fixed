@@ -19,6 +19,16 @@ local state, ns = create()
 local first = ns.db.profile
 H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "0", "hide native icons on first run")
 H.equal(first.blizzardAuras.nameplateEnemyNpcAuraDisplay, "1", "retain original value")
+first.enabled = false
+ns.Options:Changed()
+H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "1", "disabling restores native icons")
+H.equal(first.hideBlizzardAuras, true, "disabling preserves the visibility preference")
+ns.Blizzard:Apply(first)
+H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "1", "native icons stay restored while disabled")
+first.enabled = true
+ns.Options:Changed()
+H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "0", "reenabling reapplies native visibility")
+H.equal(first.blizzardAuras.nameplateEnemyNpcAuraDisplay, "1", "reenabling keeps the original baseline")
 first.disableFriendlyDebuffs = false
 ns.Blizzard:Apply(first)
 H.equal(state.cvars.nameplateShowDebuffsOnFriendly, "0", "hide all wins over explicit show friendly")

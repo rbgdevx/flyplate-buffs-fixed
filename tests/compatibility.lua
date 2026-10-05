@@ -89,3 +89,51 @@ H.equal(migrated.db.profile.ignoredDefaultSpells.Unknown, true)
 H.equal(migrated.db.profile.ignoredDefaultSpells[118], true)
 H.equal(migrated.db.sv.version, 2)
 print("Legacy migration, collisions and Forever profile identity passed")
+
+for _, interface in ipairs({ 120100, 16001 }) do
+  local name = "Shadow Word: Pain"
+  local _, addon = boot(interface, {
+    version = 2,
+    profiles = {
+      Default = {
+        Spells = {
+          [name] = { name = name, show = 1, scale = 1.7, checkID = false },
+          Unknown = { name = "Unresolved legacy spell", show = 1, checkID = false },
+        },
+      },
+    },
+  })
+  local profile = addon.db.profile
+  local rule = profile.Spells[name]
+  H.equal(addon.SpellRules:Exact()[589], rule, "resolve a version-2 name-only rule at runtime")
+  if addon.Client.forever then
+    H.equal(addon.SpellRules:Exact()[594], rule, "resolved name-only rules retain rank matching")
+  end
+  local included = false
+  for _, group in ipairs(addon.ModernRules:Build(profile, false)) do
+    if group.candidates.includeSpellIDs and group.candidates.includeSpellIDs[589] then
+      included = true
+    end
+  end
+  assert(included, "native containers receive the resolved legacy spell ID")
+  profile.Spells[589] = { spellID = 589, name = name, show = 3, checkID = true }
+  addon.SpellRules:Rebuild(profile)
+  H.equal(addon.SpellRules:Exact()[589], profile.Spells[589], "explicit numeric rules retain precedence")
+  profile.Spells[589] = nil
+  rule.checkID = true
+  addon.SpellRules:Rebuild(profile)
+  H.equal(addon.SpellRules:Exact()[589], nil, "do not resolve rules that forbid name matching")
+  rule.checkID = false
+  profile.ignoredDefaultSpells[name] = true
+  addon.SpellRules:Rebuild(profile)
+  H.equal(addon.SpellRules:Exact()[589], nil, "ignored legacy name rules stay ignored")
+  profile.ignoredDefaultSpells[name] = nil
+  addon.Database:Save()
+  H.equal(addon.db.sv.version, 2, "runtime matching needs no schema migration")
+  H.equal(profile.Spells[name].spellID, nil, "preserve name-only storage")
+  H.equal(profile.Spells[589], nil, "do not persist a numeric replacement")
+  H.equal(profile.Spells.Unknown.name, "Unresolved legacy spell", "preserve unresolved entries")
+  local _, reloaded = boot(interface, addon.db.sv)
+  H.equal(reloaded.SpellRules:Exact()[589], reloaded.db.profile.Spells[name], "name alias survives reload")
+end
+print("Modern legacy name-only aliases, precedence and unchanged persistence passed")

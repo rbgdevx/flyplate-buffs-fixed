@@ -36,6 +36,9 @@ function PositionOptions:Build()
     }),
   }
   if Client.modern then
+    limits.buffPerLine.name = L["Row width (base-size icons)"]
+    limits.buffPerLine.desc = L["Larger icons take more room. Rows grow upward."]
+    limits.buffPerLine.width = Controls:Width(limits.buffPerLine.name)
     limits.modernMaxPerGroup = Controls:Range("Maximum icons per style group", 2, 1, 100)
     args.note = Controls:Description(
       "Blizzard limits each style group separately.\nIcons follow the native nameplate's opacity and scale.",
