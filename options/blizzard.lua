@@ -148,7 +148,9 @@ function BlizzardOptions:Build()
     })
   else
     args.fixNames = Controls:Toggle("Fix nameplates without names", 6)
-    args.showSpellID = Controls:Toggle("Show spell ID in tooltips", 7)
+    args.showSpellIDRow = Controls:Row(7, {
+      showSpellID = Controls:Toggle("Show spell ID in tooltips", 1),
+    })
   end
   args.distance = Controls:Row(1, {
     nameplateMaxDistance = args.nameplateMaxDistance,

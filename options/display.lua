@@ -133,8 +133,10 @@ local function spellSection(key, title, order)
 end
 
 function DisplayOptions:Build()
+  local visibility = {
+    targetOnly = Controls:Toggle("Target only", 1),
+  }
   local general = {
-    targetOnly = Controls:Toggle("Target only", 1.5),
     settings = Controls:Row(1, {
       hidePermanent = Controls:Toggle("Hide unlisted permanent auras", 1),
       showTooltip = Controls:Toggle("Show tooltip", 2),
@@ -170,9 +172,8 @@ function DisplayOptions:Build()
   else
     args.debuffsRow = Controls:Row(1, { showDebuffs = Controls:Select("Show debuffs", 1, modes) })
     args.buffsRow = Controls:Row(2, { showBuffs = Controls:Select("Show buffs", 1, modes) })
-    general.personal = Controls:Row(2, {
-      notHideOnPersonalResource = Controls:Toggle("Don't hide buffs on personal resource bar", 1),
-    })
+    visibility.notHideOnPersonalResource = Controls:Toggle("Don't hide buffs on personal resource bar", 2)
   end
+  general.visibility = Controls:Row(2, visibility)
   return { type = "group", name = L["Display"], order = 1, args = args }
 end
