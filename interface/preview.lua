@@ -52,7 +52,7 @@ local function fitDock(visible)
     owner:SetHeight(maximum)
     owner.status.height = maximum
   end
-  owner.frame:SetClampRectInsets(0, 0, 0, -extension)
+  owner.frame:SetClampRectInsets(0, 0, extension, 0)
   owner.frame:SetClampedToScreen(true)
 end
 
@@ -178,9 +178,10 @@ function Preview:Attach(widget)
       clamped = frame:IsClampedToScreen(),
     }
     dock:SetParent(frame)
+    dock:SetFrameLevel(frame:GetFrameLevel() - 1)
     dock:ClearAllPoints()
-    dock:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, 8)
-    dock:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, 8)
+    dock:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, -8)
+    dock:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, -8)
     if not hookedOwners[frame] then
       frame:HookScript("OnHide", ownerHidden)
       hookedOwners[frame] = true
