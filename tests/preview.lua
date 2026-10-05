@@ -11,7 +11,6 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     "SetBackdropBorderColor",
     "SetClipsChildren",
     "EnableMouseWheel",
-    "RegisterForDrag",
     "DisableButton",
     "SetJustifyH",
     "SetWordWrap",
@@ -20,6 +19,39 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   end
   function methods:GetSize()
     return self.width, self.height
+  end
+  function methods:RegisterForDrag(...)
+    self.dragButtons = { ... }
+  end
+  function methods:SetMovable(value)
+    self.movable = value
+  end
+  function methods:SetResizable(value)
+    self.resizable = value
+  end
+  function methods:StartSizing(direction)
+    assert(self.resizable, "only a detached preview can resize")
+    self.sizing = direction
+  end
+  function methods:StartMoving()
+    assert(self.movable, "only a detached preview can move")
+    self.moving = true
+  end
+  function methods:StopMovingOrSizing()
+    self.moving = false
+    self.sizing = nil
+  end
+  function methods:GetFrameLevel()
+    return (self.parent and self.parent:GetFrameLevel() or 0) + (self.levelOffset or 1)
+  end
+  function methods:SetFrameLevel(level)
+    self.levelOffset = level - (self.parent and self.parent:GetFrameLevel() or 0)
+  end
+  function methods:GetFrameStrata()
+    return self.strata or (self.parent and self.parent:GetFrameStrata()) or "MEDIUM"
+  end
+  function methods:SetFrameStrata(strata)
+    self.strata = strata
   end
   function methods:SetPoint(...)
     self.point = { ... }
@@ -121,6 +153,10 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   function gui:Create(kind)
     local widget = create(self)
     widget.type = kind
+    function widget:SetWidth(width)
+      self.width = width
+      self.frame:SetWidth(width)
+    end
     widget.editbox = env.CreateFrame("EditBox", nil, widget.frame)
     widget.frame:Hide() -- AceGUI constructors start hidden until a container shows them.
     return widget
@@ -145,6 +181,7 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   H.loadAddon(state)
   local ns = state.ns
   local owner = gui:Create("Frame")
+  owner.frame:SetFrameStrata("FULLSCREEN_DIALOG")
   owner.frame:SetSize(900, 650)
   owner.frame:Show()
   owner.status = { height = 650 }
@@ -167,10 +204,12 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   end
   showPage("display")
   ns.Preview:Attach(owner)
-  local dock
+  local dock, viewport
   for _, frame in ipairs(state.created) do
     if frame.more and frame.animate then
       dock = frame
+    elseif frame.instructions and frame.scene then
+      viewport = frame
     end
   end
   assert(dock and dock:GetParent() == owner.frame)
@@ -184,6 +223,97 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   H.equal(dock.animate.frame.point[3], "LEFT")
   local height = ns.Client.modern and 225 or 175
   H.equal(owner.frame.insets[3], height - 8, "clamping includes the attached preview")
+  H.equal(dock:GetHeight(), height)
+  assert(dock.attachment.frame:IsVisible() and not dock.title:IsShown())
+  assert(not dock.resizable and not dock.resize:IsShown(), "attached preview has no resize handles")
+  H.equal(dock.attachment:GetText(), "Detach")
+  H.equal(dock.attachment.frame.point[1], "TOPRIGHT")
+  dock:SetWidth(900)
+  dock.attachment.scripts.OnClick()
+  H.equal(dock.attachment:GetText(), "Attach")
+  assert(dock.title:IsVisible() and dock.movable and dock.clamped)
+  assert(dock.resizable and dock.resize:IsVisible())
+  H.equal(dock.title.text:GetText(), "Preview")
+  H.equal(dock:GetWidth(), 900)
+  H.equal(dock:GetHeight(), height, "detaching does not add vertical space")
+  H.equal(dock.point[1], "CENTER")
+  H.equal(dock.point[2], env.UIParent)
+  H.equal(dock.point[3], "CENTER")
+  H.equal(dock.point[4], 0)
+  H.equal(dock.point[5], 0)
+  H.equal(dock:GetFrameStrata(), "TOOLTIP", "the full floating preview stays above settings controls")
+  H.equal(viewport:GetFrameStrata(), "TOOLTIP")
+  H.equal(dock.attachment.frame:GetFrameStrata(), "TOOLTIP")
+  H.equal(owner.frame.insets[3], 0, "floating preview removes the owner's extra clamp extent")
+  H.equal(owner.frame.bounds[1], 400)
+  assert(not owner.frame.clamped)
+  H.equal(viewport.movingFrame, dock)
+  H.equal(viewport.point[3], 42, "preview content retains its existing bottom inset")
+  for key, direction in pairs({ corner = "BOTTOMRIGHT", bottom = "BOTTOM", right = "RIGHT" }) do
+    local handle = dock.resize[key]
+    handle.scripts.OnMouseDown(handle, "RightButton")
+    assert(not dock.sizing, "only left mouse starts a resize")
+    handle.scripts.OnMouseDown(handle, "LeftButton")
+    H.equal(dock.sizing, direction)
+    dock:SetSize(1000, 320) -- Simulate native resizing, which is performed by the client.
+    handle.scripts.OnMouseUp(handle, "LeftButton")
+    assert(not dock.sizing)
+  end
+  ns.Preview:Refresh()
+  H.equal(dock:GetWidth(), 1000)
+  H.equal(dock:GetHeight(), 320, "settings refresh preserves the detached size")
+  showPage("display")
+  assert(not dock:IsShown())
+  showPage("style")
+  H.equal(dock:GetHeight(), 320, "automatic hide/show preserves the detached size")
+  local targets = { dock, dock.title, viewport }
+  local auraHit
+  for _, frame in ipairs(state.created) do
+    if frame.hint then
+      targets[#targets + 1] = frame
+      assert(dock.attachment.frame:GetFrameLevel() > frame:GetFrameLevel(), "panned text cannot cover Attach")
+      assert(dock.title:GetFrameLevel() > frame:GetFrameLevel(), "panned text cannot cover the title")
+      if frame.hint:find("Position", 1, true) then
+        auraHit = frame
+      end
+    end
+  end
+  for _, target in ipairs(targets) do
+    H.equal(target.dragButtons[1], "LeftButton")
+    target.scripts.OnMouseDown(target, "LeftButton")
+    target.scripts.OnDragStart(target, "LeftButton")
+    assert(dock.moving and not viewport.scripts.OnUpdate, "left-drag moves the window across preview regions")
+    target.scripts.OnDragStop(target)
+    assert(not dock.moving)
+    target.scripts.OnDragStart(target, "RightButton")
+    assert(not dock.moving and viewport.scripts.OnUpdate, "right-drag still pans inside the preview")
+    target.scripts.OnDragStop(target)
+    assert(not viewport.scripts.OnUpdate)
+  end
+  local opened, open = nil, ns.Options.Open
+  ns.Options.Open = function(_, page)
+    opened = page
+  end
+  auraHit.scripts.OnMouseDown(auraHit, "LeftButton")
+  auraHit.scripts.OnDragStart(auraHit, "LeftButton")
+  auraHit.scripts.OnDragStop(auraHit)
+  auraHit.scripts.OnMouseUp(auraHit, "LeftButton")
+  assert(not opened, "moving a preview icon does not also change settings tabs")
+  auraHit.scripts.OnMouseDown(auraHit, "LeftButton")
+  auraHit.scripts.OnMouseUp(auraHit, "LeftButton")
+  H.equal(opened, "position", "a click still opens the icon's settings")
+  ns.Options.Open = open
+  ns.Preview:Attach(owner)
+  H.equal(dock.attachment:GetText(), "Attach", "settings redraws retain floating mode")
+  dock.attachment.scripts.OnClick()
+  assert(not dock.title:IsShown() and not dock.movable and not dock.clamped)
+  assert(not dock.resizable and not dock.resize:IsShown())
+  H.equal(viewport.movingFrame, nil)
+  H.equal(dock.attachment:GetText(), "Detach")
+  H.equal(dock.point[2], owner.frame)
+  H.equal(dock.point[3], "TOPRIGHT")
+  H.equal(dock:GetFrameStrata(), owner.frame:GetFrameStrata(), "attaching restores the settings layer")
+  H.equal(owner.frame.insets[3], height - 8)
   H.equal(dock:GetHeight(), height)
   ns.Options:TogglePreview()
   assert(not dock:IsShown(), "Stop preview also stops an automatically shown preview")
@@ -266,12 +396,6 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   dock.scripts.OnUpdate(dock, 0.1)
   button = visibleButtons()[1]
   assert(button.remaining < button.sample.time)
-  local viewport
-  for _, frame in ipairs(state.created) do
-    if frame.instructions and frame.scene then
-      viewport = frame
-    end
-  end
   H.equal(viewport.zoomLabel.point[1], "BOTTOMLEFT")
   H.equal(viewport.instructions.point[2], viewport.zoomLabel)
   H.equal(viewport.reset.frame.point[2], viewport.instructions)
@@ -280,7 +404,7 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   viewport.scripts.OnMouseWheel(viewport, 1)
   H.equal(viewport.zoom, 125)
   assert(viewport.reset.frame:IsVisible(), "Reset is shown even though AceGUI created it hidden")
-  viewport.scripts.OnDragStart(viewport)
+  viewport.scripts.OnDragStart(viewport, "LeftButton")
   state.cursorX = 125
   viewport.scripts.OnUpdate(viewport)
   H.equal(viewport.panX, 100)
@@ -304,7 +428,11 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   assert(not dock:IsShown())
   H.equal(previewButton:GetText(), "Preview")
   ns.Options:TogglePreview()
+  dock.attachment.scripts.OnClick()
+  dock.scripts.OnDragStart(dock, "LeftButton")
+  assert(dock.moving)
   owner.frame:Hide()
+  assert(not dock.moving, "closing settings stops a floating preview drag")
   assert(not dock:IsShown() and not dock.scripts.OnUpdate and not viewport.scripts.OnUpdate)
   assert(dock:GetParent() == env.UIParent, "detach before AceGUI reuses the settings frame")
   H.equal(owner.frame.insets[3], 0)
@@ -313,7 +441,14 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   owner.frame:Show()
   ns.Preview:Attach(owner)
   assert(not dock:IsShown(), "closing settings clears manual preview visibility")
+  H.equal(dock.attachment:GetText(), "Detach", "reopening settings starts attached")
+  assert(not dock.title:IsShown() and not dock.movable)
   showPage("style")
   assert(dock.scripts.OnUpdate, "animation preference survives closing the settings window")
+  dock.attachment.scripts.OnClick()
+  dock.resize.corner.scripts.OnMouseDown(dock.resize.corner, "LeftButton")
+  assert(dock.sizing)
+  owner.frame:Hide()
+  assert(not dock.sizing and not dock:IsShown(), "closing settings stops a detached preview resize")
   print("Simulated dock, preview controls, selection and animation:", interface)
 end

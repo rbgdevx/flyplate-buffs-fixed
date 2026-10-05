@@ -51,17 +51,41 @@ local function startPan(view)
   view:SetScript("OnUpdate", pan)
 end
 
+local function resetDrag(target)
+  target.dragged = false
+end
+
+local function startDrag(view, background, target, button)
+  if button == "LeftButton" and view.movingFrame then
+    target.dragged = true
+    AceGUI:ClearFocus()
+    view.movingFrame:StartMoving()
+  elseif background or button == "RightButton" then
+    target.dragged = true
+    startPan(view)
+  end
+end
+
+local function stopDrag(view)
+  if view.movingFrame then
+    view.movingFrame:StopMovingOrSizing()
+  end
+  stopPan(view)
+end
+
 function PreviewViewport:Bind(view, target, background)
   target:EnableMouse(true)
   target:EnableMouseWheel(true)
-  if background then
-    target:RegisterForDrag("LeftButton", "RightButton")
-  else
-    target:RegisterForDrag("RightButton")
-  end
+  target:RegisterForDrag("LeftButton", "RightButton")
   target:SetScript("OnMouseWheel", GenerateClosure(mouseWheel, view))
-  target:SetScript("OnDragStart", GenerateClosure(startPan, view))
-  target:SetScript("OnDragStop", GenerateClosure(stopPan, view))
+  target:SetScript("OnMouseDown", resetDrag)
+  target:SetScript("OnDragStart", GenerateClosure(startDrag, view, background))
+  target:SetScript("OnDragStop", GenerateClosure(stopDrag, view))
+end
+
+function PreviewViewport:SetMovingFrame(view, frame)
+  view.movingFrame = frame
+  view.instructions:SetText(frame and "Left-drag moves, right-drag pans" or "Scroll to zoom, drag to pan")
 end
 
 function PreviewViewport:Center(view, x, y)
@@ -78,7 +102,7 @@ function PreviewViewport:Create(parent)
   view.scene = CreateFrame("Frame", nil, view)
   view.scene:SetSize(1, 1)
   PreviewViewport:Bind(view, view, true)
-  view:SetScript("OnHide", stopPan)
+  view:SetScript("OnHide", GenerateClosure(stopDrag, view))
 
   view.zoomLabel = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
   view.zoomLabel:SetPoint("BOTTOMLEFT", 18, 20)
