@@ -10,12 +10,13 @@ local Client = fPB.Client
 local Controls = fPB.Controls
 local L = fPB.L
 local Options = fPB.Options
+local Restrictions = fPB.Restrictions
 
 local BlizzardOptions = {}
 fPB.BlizzardOptions = BlizzardOptions
 
 local function unavailable(cvar)
-  return InCombatLockdown() or GetCVar(cvar) == nil
+  return InCombatLockdown() or Restrictions:Active() or GetCVar(cvar) == nil
 end
 
 local function friendlyDebuffsDisabled()

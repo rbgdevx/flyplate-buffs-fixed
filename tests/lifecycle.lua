@@ -8,9 +8,7 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   local ns = state.ns
   local profile = ns.db.profile
   assert(ns.Units:IsAllowed("nameplate1", profile))
-  profile.enabled = false
-  assert(not ns.Units:IsAllowed("nameplate1", profile))
-  profile.enabled, profile.targetOnly = true, true
+  profile.targetOnly = true
   assert(not ns.Units:IsAllowed("nameplate1", profile))
   state.target = "nameplate1"
   assert(ns.Units:IsAllowed("nameplate1", profile))
@@ -51,6 +49,11 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
       end
     end
     assert(active, "native container enabled")
+    for _, group in pairs(active.groups) do
+      if group.options.maxFrameCount ~= 0 then
+        H.equal(group.options.maxFrameCount, math.huge, "modern groups have no invented per-group cap")
+      end
+    end
     assert(not state.frames.flyPlateBuffsFixedFrame.scripts.UNIT_AURA)
     local width, gap, count = profile.baseWidth, profile.xInterval, profile.buffPerLine
     for _, case in ipairs({
@@ -83,26 +86,18 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     end
     assert(button and button.unit == "nameplate1")
     H.equal(button:GetWidth(), 24 * 1.2)
-    profile.enabled = false
-    ns.Options:Changed()
-    H.equal(plate.UnitFrame.AurasFrame.alpha, 1, "disabling restores the native aura frame")
-    assert(not button.visible, "disabling hides the addon aura")
-    local disabledPlate = state:addPlate("nameplate2")
-    event(nil, "NAME_PLATE_UNIT_ADDED", "nameplate2")
-    H.equal(disabledPlate.UnitFrame.AurasFrame.alpha, 1, "new plates retain native auras while disabled")
-    profile.enabled = true
-    ns.Options:Changed()
-    H.equal(plate.UnitFrame.AurasFrame.alpha, 0, "reenabling hides the native aura frame")
-    assert(button.visible, "reenabling restores the addon aura")
-    profile.showTooltip, profile.tooltipInCombat = true, false
+    H.equal(plate.UnitFrame.AurasFrame.alpha, 0, "hide native auras on supported Classic nameplates")
+    profile.showTooltip = true
     ns.Settings:Apply()
     button.scripts.OnEnter(button)
     assert(state.env.GameTooltip:IsOwned(button) and state.env.GameTooltip:IsShown())
     state.combat = true
     event(nil, "PLAYER_REGEN_DISABLED")
-    assert(not state.env.GameTooltip:IsShown(), "combat hides an already-open disallowed tooltip")
     button.scripts.OnEnter(button)
-    assert(not state.env.GameTooltip:IsShown())
+    assert(state.env.GameTooltip:IsShown(), "the existing Show tooltip choice also applies in combat")
+    profile.showTooltip = false
+    ns.Settings:Apply()
+    assert(not state.env.GameTooltip:IsShown(), "turning off Show tooltip closes the current tooltip")
     state.combat = false
     event(nil, "PLAYER_REGEN_ENABLED")
     state.auras.nameplate1[1].applications = 4

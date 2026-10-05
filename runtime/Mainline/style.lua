@@ -100,11 +100,11 @@ end
 
 local function applyStacks(button, style, group)
   local stackOutside = style.stackPosition == "BOTTOM" or style.stackPosition == "TOP"
-  button.StackBackground:SetShown(style.stacks and stackOutside)
+  button.StackBackground:SetShown(stackOutside)
   button.Stacks:SetTextColor(unpack(style.stackColor))
   placeText(button.Stacks, button, style.stackPosition, style.stackX, style.stackY)
   button.Stacks:SetHeight(group.stackSize + 4)
-  button.Stacks:SetShown(style.stacks)
+  button.Stacks:SetShown(true)
 end
 
 local function applyCooldown(button, style)
@@ -144,15 +144,6 @@ local function bindDuration(button, style)
   else
     button:ClearDurationText()
     button.Duration:Hide()
-  end
-end
-
-local function bindStacks(button, style)
-  if style.stacks then
-    button:SetApplicationCount(button.Stacks, {})
-  else
-    button:ClearApplicationCount()
-    button.Stacks:Hide()
   end
 end
 
@@ -241,12 +232,12 @@ function Style:Apply(button, profile, group)
   button:SetIcon(button.Icon)
   button:SetMouseClickEnabled(false)
   button:SetMouseMotionEnabled(profile.tooltip)
-  button:SetHideTooltipInCombat(not profile.tooltipInCombat)
+  button:SetHideTooltipInCombat(false)
   button:SetTooltipAnchorPoint("ANCHOR_RIGHT")
 
   local style = profile.style
   bindDuration(button, style)
-  bindStacks(button, style)
+  button:SetApplicationCount(button.Stacks, {})
   bindCooldown(button, style)
   bindBorders(button, style)
 end

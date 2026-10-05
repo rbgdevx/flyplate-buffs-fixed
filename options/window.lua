@@ -29,9 +29,6 @@ local function getValue(info)
   if key == "modernGroupOrder" then
     return profile[key] or "mine"
   end
-  if key == "modernMaxPerGroup" then
-    return profile[key] or profile.buffPerLine * profile.numLines
-  end
   return profile[key]
 end
 

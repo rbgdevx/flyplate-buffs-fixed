@@ -9,12 +9,10 @@ local defaultMediumSpells = fPB.defaultMediumSpells
 
 local Defaults = {
   profile = {
-    enabled = true,
     targetOnly = false,
     showDebuffs = 2,
     showBuffs = 3,
     showTooltip = false,
-    tooltipInCombat = true,
     enemyDebuffCategories = { crowdControl = true, dispellable = true },
     friendlyBuffCategories = { defensive = true, important = true, external = true, dispellable = true },
     hidePermanent = true,

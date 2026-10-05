@@ -7,6 +7,7 @@ local AuraContainerSortDirection = AuraContainerSortDirection
 local AuraContainerSortMethod = AuraContainerSortMethod
 local CreateFrame = CreateFrame
 local GenerateClosure = GenerateClosure
+local mhuge = math.huge
 local mmax = math.max
 local FlowDirection = AnchorUtil.FlowDirection
 
@@ -26,7 +27,7 @@ local function createGroup(state, key, index, group, profile)
 
   state.frame:AddAuraGroup(key, group.filter, {
     candidateFilters = group.candidates,
-    maxFrameCount = profile.sorting.maxPerGroup,
+    maxFrameCount = mhuge,
     sortMethod = AuraContainerSortMethod[profile.sorting.method],
     sortDirection = profile.sorting.reverse and AuraContainerSortDirection.Reverse or AuraContainerSortDirection.Normal,
     initializeFrame = GenerateClosure(initializeFrame, slot),
@@ -44,7 +45,7 @@ local function updateGroup(container, slot, key, group, previous, profile)
     container:SetAuraGroupCandidateFilters(key, group.candidates)
   end
 
-  container:SetAuraGroupMaxFrameCount(key, sorting.maxPerGroup)
+  container:SetAuraGroupMaxFrameCount(key, mhuge)
   if sorting.method ~= previousSorting.method or sorting.reverse ~= previousSorting.reverse then
     container:SetAuraGroupSortMethod(
       key,

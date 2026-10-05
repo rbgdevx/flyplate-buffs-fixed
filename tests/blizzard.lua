@@ -44,6 +44,29 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   for key, value in pairs(original) do
     H.equal(fresh.cvars[key], value, "preserve current " .. key)
   end
+  local options = fresh.registry:GetOptionsTable("flyPlateBuffsFixed")("dialog", "Test-1.0")
+  local blizzard = options.args.blizzard.args
+  local controls = {
+    blizzard.distance.args.nameplateMaxDistance,
+    blizzard.resetDistanceRow.args.resetDistance,
+    blizzard.nameplateInset,
+    blizzard.disableFriendlyDebuffs,
+    blizzard.blizzardCountdown,
+  }
+  for _, control in ipairs(controls) do
+    assert(not control.disabled(), "available CVar controls are usable out of restrictions")
+  end
+  fresh.secret = true
+  for _, control in ipairs(controls) do
+    H.equal(not not control.disabled(), fresh.ns.Client.modern, "CVar controls retain the root aura restriction")
+  end
+  fresh.secret, fresh.combat = false, true
+  for _, control in ipairs(controls) do
+    assert(control.disabled(), "CVar controls stay locked in combat on every client")
+  end
+  fresh.combat = false
+  fresh.cvars.nameplateMaxDistance = nil
+  assert(blizzard.distance.args.nameplateMaxDistance.disabled(), "unavailable CVars remain disabled")
 end
 local state, ns = create()
 local first = ns.db.profile
@@ -51,16 +74,6 @@ H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "1", "native icon hiding is op
 ns.Blizzard:HideAuras(first)
 H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "0", "explicitly hide native icons")
 H.equal(first.blizzardAuras.nameplateEnemyNpcAuraDisplay, "1", "retain original value")
-first.enabled = false
-ns.Options:Changed()
-H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "1", "disabling restores native icons")
-H.equal(first.hideBlizzardAuras, true, "disabling preserves the visibility preference")
-ns.Blizzard:Apply(first)
-H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "1", "native icons stay restored while disabled")
-first.enabled = true
-ns.Options:Changed()
-H.equal(state.cvars.nameplateEnemyNpcAuraDisplay, "0", "reenabling reapplies native visibility")
-H.equal(first.blizzardAuras.nameplateEnemyNpcAuraDisplay, "1", "reenabling keeps the original baseline")
 first.disableFriendlyDebuffs = false
 ns.Blizzard:Apply(first)
 H.equal(state.cvars.nameplateShowDebuffsOnFriendly, "0", "hide all wins over explicit show friendly")
