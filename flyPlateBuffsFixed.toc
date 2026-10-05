@@ -1,9 +1,10 @@
-## Interface: 110207, 50504, 40402, 38002, 30405, 20506, 11509
+## Interface: 120100, 16001, 50504, 20506, 11509
 ## Title: flyPlateBuffsFixed
-## Version: 11.2.7.4
+## Version: 12.1.0.1
 ## Author: RBGDEV
 ## Notes: Shows buffs/debuffs on nameplates
 ## SavedVariables: flyPlateBuffsFixedDB
+## OptionalDeps: Blizzard_AuraContainer, Blizzard_NamePlates
 ## X-Category: Buffs
 ## X-Credits: FlyNeko (Original Author), collinstevens (Last Co-Author), shamilla (Last Co-Author)
 ## X-License: GNU GENERAL PUBLIC LICENSE
@@ -12,26 +13,58 @@
 ## X-Wago-ID: aNDmBA6o
 ## X-WoWI-ID: 26867
 
-libs\LibStub\LibStub.lua
-libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
-libs\AceDB-3.0\AceDB-3.0.xml
-libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
-libs\AceGUI-3.0\AceGUI-3.0.xml
-libs\AceConfig-3.0\AceConfig-3.0.xml
-libs\LibSharedMedia-3.0\lib.xml
-libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
+embeds.xml
 
 localization.lua
-locales\ruRU.lua
-locales\deDE.lua
-locales\zhTW.lua
-locales\frFR.lua
-locales\koKR.lua
-locales\zhCN.lua
-
-utils\fixBlizzard.lua
-utils\spellID.lua
+locales/ruRU.lua
+locales/deDE.lua
+locales/zhTW.lua
+locales/frFR.lua
+locales/koKR.lua
+locales/zhCN.lua
 
 spellList.lua
+
+core/client.lua
+core/defaults.lua
+core/database.lua
+core/restrictions.lua
+core/units.lua
+core/appearance.lua
+core/blizzard.lua
+core/tooltips.lua
+
+libs/SpellRankData/Forever.lua
+
+spells/ranks.lua
+spells/lookup.lua
+spells/rules.lua
+spells/search.lua
+
+interface/fonts.lua
+interface/icons.lua
+interface/layout.lua
+
+runtime/[Family]/load.xml
+
+core/settings.lua
+
+options/controller.lua
+options/controls.lua
+options/input-placeholder.lua
+options/display.lua
+options/style.lua
+options/position.lua
+options/sorting.lua
+options/spells.lua
+options/blizzard.lua
+options/profiles.lua
+
+interface/preview-viewport.lua
+interface/preview-nameplate.lua
+interface/preview-scene.lua
+interface/preview.lua
+
+options/window.lua
+
 flyPlateBuffsFixed.lua
-options.lua
