@@ -1,11 +1,9 @@
 local _, fPB = ...
 
 local tonumber = tonumber
-
 local mfloor = math.floor
 local slower = string.lower
 local smatch = string.match
-
 local FoldCase = C_Intl and C_Intl.FoldCase
 local GetSpellInfo = C_Spell.GetSpellInfo
 

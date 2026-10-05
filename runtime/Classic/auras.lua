@@ -2,7 +2,6 @@ local _, fPB = ...
 
 local ipairs = ipairs
 local wipe = wipe
-
 local GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDataByAuraInstanceID
 local GetUnitAuras = C_UnitAuras.GetUnitAuras
 

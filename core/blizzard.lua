@@ -4,7 +4,6 @@ local hooksecurefunc = hooksecurefunc
 local ipairs = ipairs
 local pairs = pairs
 local tostring = tostring
-
 local CompactUnitFrame_IsOnThreatListWithPlayer = CompactUnitFrame_IsOnThreatListWithPlayer
 local CompactUnitFrame_IsTapDenied = CompactUnitFrame_IsTapDenied
 local CopyTable = CopyTable
@@ -12,7 +11,6 @@ local GetUnitName = GetUnitName
 local InCombatLockdown = InCombatLockdown
 local UnitIsUnit = UnitIsUnit
 local UnitSelectionColor = UnitSelectionColor
-
 local GetCVar = C_CVar.GetCVar
 local GetCVarDefault = C_CVar.GetCVarDefault
 local SetCVar = C_CVar.SetCVar

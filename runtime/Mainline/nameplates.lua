@@ -2,9 +2,7 @@ local _, fPB = ...
 
 local ipairs = ipairs
 local pairs = pairs
-
 local CopyTable = CopyTable
-
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 local GetNamePlates = C_NamePlate.GetNamePlates
 

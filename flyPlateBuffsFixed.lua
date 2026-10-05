@@ -1,7 +1,6 @@
 local addonName, fPB = ...
 
 local ipairs = ipairs
-
 local CreateFrame = CreateFrame
 local SlashCmdList = SlashCmdList
 local _G = _G

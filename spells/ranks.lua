@@ -1,9 +1,7 @@
 local _, fPB = ...
 
 local ipairs = ipairs
-
 local slower = string.lower
-
 local FoldCase = C_Intl and C_Intl.FoldCase
 local GetSpellName = C_Spell.GetSpellName
 

@@ -2,7 +2,6 @@ local _, fPB = ...
 
 local ipairs = ipairs
 local unpack = unpack
-
 local GenerateClosure = GenerateClosure
 
 local Client = fPB.Client

@@ -1,7 +1,6 @@
 local _, fPB = ...
 
 local ipairs = ipairs
-
 local GetSpellInfo = C_Spell.GetSpellInfo
 
 local defaultHiddenSpells = fPB.defaultHiddenSpells

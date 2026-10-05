@@ -3,12 +3,10 @@ local _, fPB = ...
 local ipairs = ipairs
 local tCompare = tCompare
 local tostring = tostring
-
 local AuraContainerSortDirection = AuraContainerSortDirection
 local AuraContainerSortMethod = AuraContainerSortMethod
 local CreateFrame = CreateFrame
 local GenerateClosure = GenerateClosure
-
 local FlowDirection = AnchorUtil.FlowDirection
 
 local Style = fPB.Style
