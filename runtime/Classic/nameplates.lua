@@ -6,6 +6,7 @@ local wipe = wipe
 local CopyTable = CopyTable
 local CreateFrame = CreateFrame
 local GameTooltip = GameTooltip
+local InCombatLockdown = InCombatLockdown
 local WorldFrame = WorldFrame
 local mmin = math.min
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
@@ -31,6 +32,9 @@ local function hideTooltip(button)
 end
 
 local function showTooltip(button)
+  if not button.profile.tooltipInCombat and InCombatLockdown() then
+    return
+  end
   GameTooltip:SetOwner(button, "ANCHOR_LEFT")
   GameTooltip:SetUnitAuraByAuraInstanceID(button.unit, button.aura.auraInstanceID)
   if button.profile.showSpellID then
@@ -73,8 +77,9 @@ local function render(state)
       state.buttons[index] = button
     end
     button.unit = state.unit
-    button:EnableMouse(profile.showTooltip)
-    if not profile.showTooltip then
+    local tooltip = profile.showTooltip and (profile.tooltipInCombat or not InCombatLockdown())
+    button:EnableMouse(tooltip)
+    if not tooltip then
       hideTooltip(button)
     end
     Icons:Apply(button, profile, appearance.style, records[index].style, records[index].aura)

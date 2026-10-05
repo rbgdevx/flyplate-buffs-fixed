@@ -137,6 +137,7 @@ function DisplayOptions:Build()
     settings = Controls:Row(1, {
       hidePermanent = Controls:Toggle("Hide unlisted permanent auras", 1),
       showTooltip = Controls:Toggle("Show tooltip", 2),
+      tooltipInCombat = Controls:Toggle("Allow tooltips in combat", 3),
     }),
   }
   local args = {

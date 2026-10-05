@@ -38,6 +38,10 @@ the per-style-group cap remain removed. The anchor question requested an
 explanation; it did not approve restoring the extra anchor choices or adding
 Nameplate Auras-only controls to FPB.
 
+Further follow-up: the maintainer explicitly approved keeping Allow tooltips
+in combat in both addons. Restore the existing checkbox, true default, saved
+choice, and Classic/native tooltip behavior. This supersedes its removal above.
+
 Validation: the full local check script passes, including saved-profile cleanup
 and five-client lifecycle fixtures. No live-client validation of these removals
 has been performed.

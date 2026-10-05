@@ -232,7 +232,7 @@ function Style:Apply(button, profile, group)
   button:SetIcon(button.Icon)
   button:SetMouseClickEnabled(false)
   button:SetMouseMotionEnabled(profile.tooltip)
-  button:SetHideTooltipInCombat(false)
+  button:SetHideTooltipInCombat(not profile.tooltipInCombat)
   button:SetTooltipAnchorPoint("ANCHOR_RIGHT")
 
   local style = profile.style
