@@ -11,12 +11,20 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     profileKeys = { ["Tester - Realm"] = "Raid" },
     profiles = {
       Raid = {
+        enabled = false,
+        tooltipInCombat = false,
+        modernMaxPerGroup = 3,
+        modernSortMethod = "NameOnly",
+        modernGroupOrder = "listed",
+        buffAnchorPoint = "TOP",
+        plateAnchorPoint = "LEFT",
         myScale = 0.45,
         baseWidth = 31,
         unknown = { keep = true },
         Spells = { [970] = { name = "Shadow Word: Pain", spellID = 970, show = 2, scale = 1.7, checkID = true } },
         ignoredDefaultSpells = { [118] = true },
       },
+      Inactive = { enabled = false, tooltipInCombat = false },
     },
   })
   H.equal(ns.Database:GetCurrentProfile(), "Raid", "profile on " .. interface)
@@ -25,9 +33,16 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   H.equal(ns.db.profile.Spells[970].checkID, true)
   H.equal(ns.db.profile.unknown.keep, true)
   H.equal(ns.db.profile.ignoredDefaultSpells[118], true)
-  H.equal(ns.db.profile.enabled, true)
+  H.equal(ns.db.profile.enabled, nil)
+  H.equal(ns.db.profile.tooltipInCombat, nil)
+  H.equal(ns.db.profile.modernMaxPerGroup, nil)
+  H.equal(ns.db.profile.modernSortMethod, nil)
+  H.equal(ns.db.profile.modernGroupOrder, nil)
+  H.equal(ns.db.profile.buffAnchorPoint, "BOTTOM")
+  H.equal(ns.db.profile.plateAnchorPoint, "TOP")
+  H.equal(ns.db.sv.profiles.Inactive.enabled, nil, "remove the retired control from inactive profiles")
+  H.equal(ns.db.sv.profiles.Inactive.tooltipInCombat, nil)
   H.equal(ns.db.profile.targetOnly, false)
-  H.equal(ns.db.profile.tooltipInCombat, true)
   H.equal(ns.db.profile.enemyDebuffCategories.crowdControl, true)
   ns.db.profile.enemyDebuffCategories.crowdControl = false
   ns.db.profile.friendlyBuffCategories.defensive = false

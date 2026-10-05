@@ -27,7 +27,6 @@ function Appearance:Build(profile)
       durationColor = profile.colorTransition,
       durationTextColor = profile.colorSingle,
       durationBackgroundColor = { 0, 0, 0, 0.75 },
-      stacks = true,
       stackPosition = stackPositions[profile.stackPosition],
       stackX = 0,
       stackY = 0,
@@ -46,7 +45,6 @@ function Appearance:Build(profile)
       colors = colors,
     },
     tooltip = profile.showTooltip,
-    tooltipInCombat = profile.tooltipInCombat,
     position = {
       anchor = profile.buffAnchorPoint,
       relativeAnchor = profile.plateAnchorPoint,
@@ -59,7 +57,6 @@ function Appearance:Build(profile)
     sorting = {
       method = profile.modernSortMethod or "ExpirationOnly",
       reverse = profile.modernSortReverse or false,
-      maxPerGroup = profile.modernMaxPerGroup or profile.buffPerLine * profile.numLines,
     },
   }
 end

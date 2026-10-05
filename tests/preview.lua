@@ -450,5 +450,39 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   assert(dock.sizing)
   owner.frame:Hide()
   assert(not dock.sizing and not dock:IsShown(), "closing settings stops a detached preview resize")
+
+  owner.frame:Show()
+  owner:SetHeight(1000)
+  owner.status.height = 1000
+  ns.Options.selectedPage = "display"
+  ns.Preview:Attach(owner)
+  showPage("style")
+  local maximum = 1080 - (height - 8) - 32
+  H.equal(owner.frame:GetHeight(), maximum, "a tall settings window fits beside the attached preview")
+  ns.Preview:Refresh()
+  env.UIParent:SetHeight(1000)
+  ns.Preview:Refresh()
+  showPage("display")
+  H.equal(owner.frame:GetHeight(), 1000, "hiding preview restores height across repeated clamps")
+  H.equal(owner.status.height, 1000, "temporary preview fitting does not persist a smaller settings window")
+
+  env.UIParent:SetHeight(1080)
+  showPage("style")
+  dock.attachment.scripts.OnClick()
+  H.equal(owner.frame:GetHeight(), 1000, "detaching restores the settings height")
+  dock.attachment.scripts.OnClick()
+  owner:SetHeight(600)
+  owner.status.height = 600
+  ns.Preview:Refresh()
+  showPage("display")
+  H.equal(owner.frame:GetHeight(), 600, "preview restoration preserves deliberate settings resizing")
+  H.equal(owner.status.height, 600)
+
+  owner:SetHeight(1000)
+  owner.status.height = 1000
+  showPage("style")
+  owner.frame:Hide()
+  H.equal(owner.frame:GetHeight(), 1000, "closing settings restores its pre-preview height")
+  H.equal(owner.status.height, 1000)
   print("Simulated dock, preview controls, selection and animation:", interface)
 end

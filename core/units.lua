@@ -27,9 +27,6 @@ function Units:IsFriendly(unit)
 end
 
 function Units:IsAllowed(unit, profile)
-  if profile.enabled == false then
-    return false
-  end
   if profile.targetOnly then
     if
       CanCompareUnitTokens

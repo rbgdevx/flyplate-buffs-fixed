@@ -26,19 +26,10 @@ function SortingOptions:Build()
       Default = "Blizzard default",
       ExpirationOnly = "Expiration",
       Expiration = "Expiration + Blizzard priority",
-      Name = "Name + Blizzard priority",
-      NameOnly = "Name only",
-      AuraInstanceIDOnly = "Aura application order",
-      BigDefensive = "Big defensives",
-      ImportantOnly = "Important first",
-      UnitFrameDebuff = "Blizzard debuff priority",
     })
     args.modernSortReverse = Controls:Toggle("Reverse sorting", 2)
-    args.modernGroupOrder = Controls:Select(
-      "Group order",
-      3,
-      { mine = "Mine first", listed = "Listed first", larger = "Larger first", default = "Default" }
-    )
+    args.modernGroupOrder =
+      Controls:Select("Group order", 3, { mine = "Mine first", larger = "Larger first", default = "Default" })
     args = {
       method = Controls:Row(1, { modernSortMethod = args.modernSortMethod }),
       reverse = Controls:Row(2, { modernSortReverse = args.modernSortReverse }),

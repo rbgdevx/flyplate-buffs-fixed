@@ -38,6 +38,15 @@ local function restoreOwner()
   owner.frame:SetClampRectInsets(unpack(ownerState.insets))
   owner.frame:SetClampedToScreen(ownerState.clamped)
   owner.frame:SetResizeBounds(unpack(ownerState.bounds, 1, 4))
+  if ownerState.forcedHeight then
+    local height = owner.frame:GetHeight()
+    if height == ownerState.forcedHeight then
+      height = ownerState.height
+      owner:SetHeight(height)
+    end
+    owner.status.height = height
+    ownerState.height, ownerState.forcedHeight = nil, nil
+  end
 end
 
 local function fitDock(visible)
@@ -51,10 +60,15 @@ local function fitDock(visible)
   end
   local extension = height - 8
   local maximum = mmax(320, UIParent:GetHeight() - extension - 32)
+  local currentHeight = owner.frame:GetHeight()
   owner.frame:SetResizeBounds(640, 320, nil, maximum)
-  if owner.frame:GetHeight() > maximum then
+  if currentHeight > maximum then
+    if currentHeight ~= ownerState.forcedHeight then
+      ownerState.height = currentHeight
+    end
     owner:SetHeight(maximum)
     owner.status.height = maximum
+    ownerState.forcedHeight = maximum
   end
   owner.frame:SetClampRectInsets(0, 0, extension, 0)
   owner.frame:SetClampedToScreen(true)

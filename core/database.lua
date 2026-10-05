@@ -113,7 +113,34 @@ local function migrateProfile(profile, names)
   end
 end
 
+local function removeUnrequestedSettings(profile)
+  profile.enabled = nil
+  profile.tooltipInCombat = nil
+  profile.modernMaxPerGroup = nil
+
+  local method = profile.modernSortMethod
+  if method ~= "Default" and method ~= "Expiration" and method ~= "ExpirationOnly" then
+    profile.modernSortMethod = nil
+  end
+  if profile.modernGroupOrder == "listed" then
+    profile.modernGroupOrder = nil
+  end
+
+  local anchor = profile.buffAnchorPoint
+  if anchor ~= "BOTTOMLEFT" and anchor ~= "BOTTOM" and anchor ~= "BOTTOMRIGHT" then
+    profile.buffAnchorPoint = nil
+  end
+  anchor = profile.plateAnchorPoint
+  if anchor ~= "TOPLEFT" and anchor ~= "TOP" and anchor ~= "TOPRIGHT" then
+    profile.plateAnchorPoint = nil
+  end
+end
+
 function Database:Migrate(storage)
+  for _, profile in pairs(storage and storage.profiles or {}) do
+    removeUnrequestedSettings(profile)
+  end
+
   if storage and (not storage.version or storage.version < 2) then
     local names = defaultNames()
     for _, profile in pairs(storage.profiles or {}) do
