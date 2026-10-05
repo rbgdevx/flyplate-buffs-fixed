@@ -1,10 +1,12 @@
 local _, fPB = ...
 
+local GetLocale = GetLocale
+
+local L = fPB.L
+
 if GetLocale() ~= "ruRU" then
   return
 end
-
-local L = fPB.L
 
 L[" ID changed "] = " ID изменен "
 L[" Incorrect ID"] = " Некорректный ID"

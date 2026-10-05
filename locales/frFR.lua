@@ -1,12 +1,14 @@
 local _, fPB = ...
 
+local GetLocale = GetLocale
+
+local L = fPB.L
+
 if GetLocale() ~= "frFR" then
   return
 end
 
 --You can help with translation at https://wow.curseforge.com/projects/flyPlateBuffsFixed/localization
-
-local L = fPB.L
 
 L["Add new spell to list"] = "Ajouter nouveau sort"
 L["All"] = "Tout"
