@@ -2,6 +2,7 @@ local addonName, fPB = ...
 
 local ipairs = ipairs
 local CreateFrame = CreateFrame
+local Enum = Enum
 local SlashCmdList = SlashCmdList
 local _G = _G
 
@@ -66,7 +67,9 @@ local function initialize()
   }) do
     frame:RegisterEvent(event)
   end
-  if not Client.modern then
+  if Client.modern then
+    frame:RegisterEvent("ADDON_RESTRICTION_STATE_CHANGED")
+  else
     frame:RegisterEvent("UNIT_AURA")
   end
 end
@@ -81,6 +84,13 @@ local function onEvent(_, event, unit, update)
     Database:Save()
   elseif event == "NAME_PLATE_UNIT_REMOVED" then
     Runtime:RemoveUnit(unit)
+  elseif event == "ADDON_RESTRICTION_STATE_CHANGED" then
+    if update == Enum.AddOnRestrictionState.Inactive then
+      if Settings.pending then
+        Settings:Apply()
+      end
+      Options:Refresh()
+    end
   elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_ENTERING_WORLD" then
     Blizzard:Apply(fPB.db.profile)
     if Settings.pending then

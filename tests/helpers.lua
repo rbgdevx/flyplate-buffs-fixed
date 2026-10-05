@@ -354,6 +354,8 @@ function Helpers.environment(interface, saved)
   end
   env.SlashCmdList = {}
   env.Enum = {
+    AddOnRestrictionState = { Inactive = 0, Activating = 1, Active = 2 },
+    AddOnRestrictionType = { Combat = 0, Encounter = 1, ChallengeMode = 2, PvPMatch = 3 },
     GameRule = {},
     TooltipDataType = { Spell = 1 },
     DurationTextBindingProperty = { RemainingPercent = 1 },

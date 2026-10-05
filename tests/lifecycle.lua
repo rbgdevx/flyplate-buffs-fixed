@@ -151,6 +151,43 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     event(nil, "PLAYER_REGEN_ENABLED")
     assert(not ns.Settings.pending)
     H.equal(scans, 1, "one scan after deferred settings")
+
+    local restriction = state.env.Enum.AddOnRestrictionType
+    local status = state.env.Enum.AddOnRestrictionState
+    state.secret = true
+    ns.Settings:Apply()
+    event(nil, "PLAYER_REGEN_ENABLED")
+    assert(ns.Settings.pending, "aura secrecy can outlast combat")
+    event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Combat, status.Inactive)
+    assert(ns.Settings.pending, "another aura restriction still blocks the apply")
+    H.equal(scans, 1, "blocked retries do not scan")
+    state.secret = false
+    event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Activating)
+    assert(ns.Settings.pending, "pre-activation notifications must not apply settings")
+    event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Active)
+    assert(ns.Settings.pending)
+    event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Inactive)
+    assert(not ns.Settings.pending, "restriction deactivation retries deferred settings without another combat edge")
+    H.equal(scans, 2, "restriction recovery scans once")
+    event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Inactive)
+    H.equal(scans, 2, "no settings rebuild when nothing is pending")
+
+    local startup = H.environment(interface)
+    startup.secret = true
+    H.loadAddon(startup)
+    assert(startup.ns.Settings.pending and not startup.ns.Settings.ready)
+    local startupEvent = startup.frames.flyPlateBuffsFixedFrame.scripts.OnEvent
+    startup:addPlate("nameplate1")
+    startup.secret = false
+    startupEvent(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.PvPMatch, status.Inactive)
+    assert(startup.ns.Settings.ready and not startup.ns.Settings.pending, "deferred initialization recovers")
+    local active
+    for _, frame in ipairs(startup.created) do
+      if frame.unit == "nameplate1" and frame.enabled then
+        active = frame
+      end
+    end
+    assert(active, "restriction recovery scans plates already present")
   end
   print("Plate lifecycle, preview and immediate spell mutations:", interface)
 end
