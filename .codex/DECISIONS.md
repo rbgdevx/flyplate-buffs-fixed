@@ -42,6 +42,13 @@ Further follow-up: the maintainer explicitly approved keeping Allow tooltips
 in combat in both addons. Restore the existing checkbox, true default, saved
 choice, and Classic/native tooltip behavior. This supersedes its removal above.
 
+Anchor follow-up: after clarifying that these were additional choices in the
+existing dropdowns, the maintainer approved retaining all nine points in both
+Aura anchor and Nameplate anchor, in both addons. Restore the choices and
+preserve their saved values; retain the existing default attachment. This
+supersedes the anchor restrictions above. Only the internal Enable control
+and per-style-group cap remain removed from the audited controls.
+
 Validation: the full local check script passes, including saved-profile cleanup
 and five-client lifecycle fixtures. No live-client validation of these removals
 has been performed.
