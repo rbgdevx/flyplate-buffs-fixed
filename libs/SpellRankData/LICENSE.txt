@@ -1,0 +1,17 @@
+Forever spell rank data
+
+Data from Talents Forever by Chris Baldwin:
+https://talentsforever.com/
+Source: https://talentsforever.com/data.json
+
+Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0):
+https://creativecommons.org/licenses/by/4.0/
+
+Modified for Nameplate Auras: retain beta spellbook IDs with numbered ranks;
+group by class and exact spell name; retain English names and distinct named
+variants; omit single-rank entries, tooltip text, and unrelated data. Generated source date
+and SHA-256 are recorded in Forever.lua. The data may lag game updates and
+does not establish coverage of every applied aura.
+
+No endorsement by the source author or Blizzard Entertainment is implied.
+This directory is governed by this license, not the addon's source-use policy.

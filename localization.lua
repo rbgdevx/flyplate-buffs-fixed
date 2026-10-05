@@ -1,9 +1,9 @@
 local _, fPB = ...
 
-local L = setmetatable({}, {
-  __index = function(L, key)
-    return key
-  end,
-})
+local setmetatable = setmetatable
 
-fPB.L = L
+local function fallback(_, key)
+  return key
+end
+
+fPB.L = setmetatable({}, { __index = fallback })

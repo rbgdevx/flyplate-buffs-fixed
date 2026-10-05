@@ -10,9 +10,9 @@ std = "lua51"            -- WoW runs Lua 5.1
 max_line_length = false  -- WoW addon lines are routinely wide
 
 exclude_files = {
-  ".claude", ".vscode",
+  ".claude", ".vscode", "tests",
   -- External embedded libraries (NOT ours).
-  "libs/AceConfig-3.0", "libs/AceDB-3.0", "libs/AceDBOptions-3.0",
+  "libs/AceConfig-3.0",
   "libs/AceGUI-3.0", "libs/AceGUI-3.0-SharedMediaWidgets",
   "libs/CallbackHandler-1.0", "libs/LibSharedMedia-3.0", "libs/LibStub",
 }
@@ -35,6 +35,10 @@ globals = {
 
 -- Blizzard client API (and optional deps) the addon READS.
 read_globals = {
+  "C_AddOns",
+  "GetCursorPosition", "C_Timer", "NamePlateEnemyFrameOptions", "NamePlateSetupOptions",
+  "RegionalUniqueNamesEnabled", "UnitNameUnmodified", "strlenutf8",
+  "CopyTable", "C_CVar", "GetBuildInfo", "GetRealmName", "C_Secrets", "UnitCanAttack", "UnitCanAssist", "UnitReaction", "C_Intl", "GenerateClosure", "AuraContainerSortDirection", "AuraContainerSortMethod", "tCompare", "AnchorUtil", "CreateColor", "C_CurveUtil", "C_StringUtil",
   "Clamp", "C_NamePlate", "C_Spell", "C_UnitAuras", "CompactUnitFrame_IsOnThreatListWithPlayer",
   "CompactUnitFrame_IsTapDenied", "CompactUnitFrame_UpdateName", "CreateFrame",
   "DEFAULT_CHAT_FRAME", "DISABLE", "ElvUI", "Enum", "GameTooltip", "GetCVar", "GetCVarDefault",
