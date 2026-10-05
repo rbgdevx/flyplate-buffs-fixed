@@ -7,19 +7,24 @@ local L = fPB.L
 local PositionOptions = {}
 fPB.PositionOptions = PositionOptions
 
-local auraAnchors = {
+local anchors = {
+  TOPLEFT = "Top left",
+  TOP = "Top",
+  TOPRIGHT = "Top right",
+  LEFT = "Left",
+  CENTER = "Center",
+  RIGHT = "Right",
   BOTTOMLEFT = "Bottom left",
   BOTTOM = "Bottom",
   BOTTOMRIGHT = "Bottom right",
 }
-local plateAnchors = { TOPLEFT = "Top left", TOP = "Top", TOPRIGHT = "Top right" }
 
 function PositionOptions:Build()
   local limits = { buffPerLine = Controls:Range("Icons per row", 1, 1, 30) }
   local args = {
     anchors = Controls:Row(1, {
-      buffAnchorPoint = Controls:Select("Aura anchor", 1, auraAnchors),
-      plateAnchorPoint = Controls:Select("Nameplate anchor", 2, plateAnchors),
+      buffAnchorPoint = Controls:Select("Aura anchor", 1, anchors),
+      plateAnchorPoint = Controls:Select("Nameplate anchor", 2, anchors),
     }),
     offsets = Controls:Row(2, {
       xOffset = Controls:Range("Horizontal offset", 1, -300, 300),

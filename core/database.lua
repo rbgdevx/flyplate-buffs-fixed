@@ -116,15 +116,6 @@ end
 local function removeUnrequestedSettings(profile)
   profile.enabled = nil
   profile.modernMaxPerGroup = nil
-
-  local anchor = profile.buffAnchorPoint
-  if anchor ~= "BOTTOMLEFT" and anchor ~= "BOTTOM" and anchor ~= "BOTTOMRIGHT" then
-    profile.buffAnchorPoint = nil
-  end
-  anchor = profile.plateAnchorPoint
-  if anchor ~= "TOPLEFT" and anchor ~= "TOP" and anchor ~= "TOPRIGHT" then
-    profile.plateAnchorPoint = nil
-  end
 end
 
 function Database:Migrate(storage)
