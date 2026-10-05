@@ -2,9 +2,7 @@ local _, fPB = ...
 
 local ipairs = ipairs
 local tostring = tostring
-
 local GenerateClosure = GenerateClosure
-
 local sfind = string.find
 local tsort = table.sort
 

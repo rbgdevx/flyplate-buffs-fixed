@@ -6,17 +6,14 @@ local pairs = pairs
 local strlenutf8 = strlenutf8
 local tostring = tostring
 local type = type
-
 local CopyTable = CopyTable
 local GetRealmName = GetRealmName
 local RegionalUniqueNamesEnabled = RegionalUniqueNamesEnabled
 local UnitName = UnitName
 local UnitNameUnmodified = UnitNameUnmodified
 local _G = _G
-
 local sfind = string.find
 local tsort = table.sort
-
 local GetSpellInfo = C_Spell.GetSpellInfo
 
 local defaultLargeSpells = fPB.defaultLargeSpells

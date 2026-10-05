@@ -3,15 +3,12 @@ local _, fPB = ...
 local ipairs = ipairs
 local pairs = pairs
 local wipe = wipe
-
 local CopyTable = CopyTable
 local CreateFrame = CreateFrame
 local GameTooltip = GameTooltip
 local InCombatLockdown = InCombatLockdown
 local WorldFrame = WorldFrame
-
 local mmin = math.min
-
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 local GetNamePlates = C_NamePlate.GetNamePlates
 

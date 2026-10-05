@@ -2,10 +2,8 @@ local addonName, fPB = ...
 
 local hooksecurefunc = hooksecurefunc
 local ipairs = ipairs
-
 local GenerateClosure = GenerateClosure
 local LibStub = LibStub
-
 local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 
 local BlizzardOptions = fPB.BlizzardOptions

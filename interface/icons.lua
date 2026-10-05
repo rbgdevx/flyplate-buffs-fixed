@@ -1,10 +1,8 @@
 local addonName, fPB = ...
 
 local unpack = unpack
-
 local CreateFrame = CreateFrame
 local GetTime = GetTime
-
 local mfloor = math.floor
 local mmax = math.max
 local mmin = math.min

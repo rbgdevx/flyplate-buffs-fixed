@@ -1,7 +1,6 @@
 local _, fPB = ...
 
 local select = select
-
 local GetBuildInfo = GetBuildInfo
 
 local interface = select(4, GetBuildInfo())

@@ -1,7 +1,6 @@
 local _, fPB = ...
 
 local ipairs = ipairs
-
 local GenerateClosure = GenerateClosure
 local LibStub = LibStub
 

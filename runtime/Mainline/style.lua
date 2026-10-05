@@ -3,11 +3,9 @@ local addonName, fPB = ...
 local ipairs = ipairs
 local pairs = pairs
 local unpack = unpack
-
 local CreateColor = CreateColor
 local CreateFrame = CreateFrame
 local Enum = Enum
-
 local CreateColorCurve = C_CurveUtil.CreateColorCurve
 local CreateNumericRuleFormatter = C_StringUtil.CreateNumericRuleFormatter
 

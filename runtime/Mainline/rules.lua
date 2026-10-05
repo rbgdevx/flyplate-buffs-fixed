@@ -3,9 +3,7 @@ local _, fPB = ...
 local ipairs = ipairs
 local pairs = pairs
 local tostring = tostring
-
 local GenerateClosure = GenerateClosure
-
 local mhuge = math.huge
 local tconcat = table.concat
 local tsort = table.sort

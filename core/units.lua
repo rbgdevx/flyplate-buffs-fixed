@@ -7,7 +7,6 @@ local UnitIsPlayer = UnitIsPlayer
 local UnitIsUnit = UnitIsUnit
 local UnitPlayerControlled = UnitPlayerControlled
 local UnitReaction = UnitReaction
-
 local CanCompareUnitTokens = C_Secrets and C_Secrets.CanCompareUnitTokens
 local ShouldUnitComparisonBeSecret = C_Secrets and C_Secrets.ShouldUnitComparisonBeSecret
 

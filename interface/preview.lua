@@ -2,15 +2,12 @@ local _, fPB = ...
 
 local setmetatable = setmetatable
 local unpack = unpack
-
 local CreateFrame = CreateFrame
 local GenerateClosure = GenerateClosure
 local GetTime = GetTime
 local LibStub = LibStub
 local UIParent = UIParent
-
 local mmax = math.max
-
 local After = C_Timer.After
 
 local Client = fPB.Client

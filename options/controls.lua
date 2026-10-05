@@ -2,10 +2,8 @@ local _, fPB = ...
 
 local pairs = pairs
 local unpack = unpack
-
 local CreateFrame = CreateFrame
 local GenerateClosure = GenerateClosure
-
 local mceil = math.ceil
 local mmax = math.max
 

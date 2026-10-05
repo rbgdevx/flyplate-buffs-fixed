@@ -1,12 +1,10 @@
 local _, fPB = ...
 
 local ipairs = ipairs
-
 local CreateFrame = CreateFrame
 local GenerateClosure = GenerateClosure
 local NamePlateEnemyFrameOptions = NamePlateEnemyFrameOptions
 local NamePlateSetupOptions = NamePlateSetupOptions
-
 local GetNamePlateSize = C_NamePlate.GetNamePlateSize
 
 local PreviewNameplate = {}

@@ -1,7 +1,6 @@
 local _, fPB = ...
 
 local setmetatable = setmetatable
-
 local GenerateClosure = GenerateClosure
 
 local InputPlaceholder = {}

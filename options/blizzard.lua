@@ -1,10 +1,8 @@
 local _, fPB = ...
 
 local tonumber = tonumber
-
 local GenerateClosure = GenerateClosure
 local InCombatLockdown = InCombatLockdown
-
 local GetCVar = C_CVar.GetCVar
 
 local Blizzard = fPB.Blizzard

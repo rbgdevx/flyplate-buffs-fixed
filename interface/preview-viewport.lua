@@ -4,7 +4,6 @@ local CreateFrame = CreateFrame
 local GenerateClosure = GenerateClosure
 local GetCursorPosition = GetCursorPosition
 local LibStub = LibStub
-
 local mmax = math.max
 local mmin = math.min
 

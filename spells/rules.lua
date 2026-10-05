@@ -4,9 +4,7 @@ local ipairs = ipairs
 local pairs = pairs
 local tonumber = tonumber
 local type = type
-
 local CopyTable = CopyTable
-
 local tsort = table.sort
 
 local Defaults = fPB.Defaults

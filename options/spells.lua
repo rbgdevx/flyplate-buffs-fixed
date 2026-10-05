@@ -4,9 +4,7 @@ local ipairs = ipairs
 local tonumber = tonumber
 local tostring = tostring
 local type = type
-
 local LibStub = LibStub
-
 local GetSpellTexture = C_Spell.GetSpellTexture
 
 local Client = fPB.Client

@@ -1,7 +1,6 @@
 local _, fPB = ...
 
 local InCombatLockdown = InCombatLockdown
-
 local ShouldAurasBeSecret = C_Secrets and C_Secrets.ShouldAurasBeSecret
 
 local Client = fPB.Client

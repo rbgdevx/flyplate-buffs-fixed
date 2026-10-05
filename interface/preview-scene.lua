@@ -3,12 +3,10 @@ local _, fPB = ...
 local ipairs = ipairs
 local tostring = tostring
 local unpack = unpack
-
 local CreateFrame = CreateFrame
 local GameTooltip = GameTooltip
 local GenerateClosure = GenerateClosure
 local GetTime = GetTime
-
 local mmax = math.max
 local mmin = math.min
 local tconcat = table.concat

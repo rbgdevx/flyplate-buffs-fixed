@@ -2,7 +2,6 @@ local _, fPB = ...
 
 local GenerateClosure = GenerateClosure
 local UnitIsUnit = UnitIsUnit
-
 local mhuge = math.huge
 local tsort = table.sort
 
