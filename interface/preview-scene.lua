@@ -11,7 +11,6 @@ local mmax = math.max
 local mmin = math.min
 local tconcat = table.concat
 local tsort = table.sort
-
 local CreateFlowLayout = fPB.Client.modern and AnchorUtil.CreateFlowLayout
 local FlowDirection = fPB.Client.modern and AnchorUtil.FlowDirection
 local GetSpellInfo = C_Spell.GetSpellInfo
