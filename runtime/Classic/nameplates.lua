@@ -97,9 +97,11 @@ function Runtime:AddUnit(unit)
   if not plate or plate:IsForbidden() then
     return
   end
-  local blizzard = plate.UnitFrame and plate.UnitFrame.BuffFrame
+  local blizzard = plate.UnitFrame and plate.UnitFrame.AurasFrame
   if blizzard then
-    blizzard:SetAlpha(Units:IsPlayer(unit) and profile.notHideOnPersonalResource and 1 or 0)
+    blizzard:SetAlpha(
+      (profile.enabled == false or Units:IsPlayer(unit) and profile.notHideOnPersonalResource) and 1 or 0
+    )
   end
   local state = displays[plate]
   if not state then

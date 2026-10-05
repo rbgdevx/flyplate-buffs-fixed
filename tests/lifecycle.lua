@@ -69,6 +69,17 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     end
     assert(button and button.unit == "nameplate1")
     H.equal(button:GetWidth(), 24 * 1.2)
+    profile.enabled = false
+    ns.Options:Changed()
+    H.equal(plate.UnitFrame.AurasFrame.alpha, 1, "disabling restores the native aura frame")
+    assert(not button.visible, "disabling hides the addon aura")
+    local disabledPlate = state:addPlate("nameplate2")
+    event(nil, "NAME_PLATE_UNIT_ADDED", "nameplate2")
+    H.equal(disabledPlate.UnitFrame.AurasFrame.alpha, 1, "new plates retain native auras while disabled")
+    profile.enabled = true
+    ns.Options:Changed()
+    H.equal(plate.UnitFrame.AurasFrame.alpha, 0, "reenabling hides the native aura frame")
+    assert(button.visible, "reenabling restores the addon aura")
     profile.showTooltip, profile.tooltipInCombat = true, false
     ns.Settings:Apply()
     button.scripts.OnEnter(button)

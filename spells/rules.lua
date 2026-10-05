@@ -7,6 +7,7 @@ local type = type
 local CopyTable = CopyTable
 local tsort = table.sort
 
+local Client = fPB.Client
 local Defaults = fPB.Defaults
 local SpellLookup = fPB.SpellLookup
 local SpellRanks = fPB.SpellRanks
@@ -49,11 +50,19 @@ function SpellRules:Rebuild(profile)
   end
   for _, key in ipairs(keys) do
     local rule = profile.Spells[key]
-    local family = not rule.checkID and rule.allRanks ~= false and SpellRanks:Get(tonumber(key) or rule.spellID)
+    local id = tonumber(key) or tonumber(rule.spellID)
+    if Client.modern and not id and not rule.checkID and rule.name then
+      local info = SpellLookup:Resolve(rule.name)
+      if info then
+        id = info.spellID
+        exact[id] = exact[id] or rule
+      end
+    end
+    local family = not rule.checkID and rule.allRanks ~= false and SpellRanks:Get(id)
     if family then
-      for _, id in ipairs(family) do
-        if not profile.ignoredDefaultSpells[id] then
-          exact[id] = exact[id] or rule
+      for _, rankID in ipairs(family) do
+        if not profile.ignoredDefaultSpells[rankID] then
+          exact[rankID] = exact[rankID] or rule
         end
       end
     end

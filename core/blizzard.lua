@@ -109,7 +109,7 @@ function Blizzard:Apply(profile)
   if
     Client.modern
     and hiddenAuras
-    and (not profile.hideBlizzardAuras or profile.blizzardAuras ~= hiddenProfileValues)
+    and (profile.enabled == false or not profile.hideBlizzardAuras or profile.blizzardAuras ~= hiddenProfileValues)
   then
     -- Reset/copy can replace the active profile while native icons are hidden.
     restoreSavedAuras(hiddenAuras)
@@ -131,7 +131,7 @@ function Blizzard:Apply(profile)
   if profile.blizzardCountdown ~= nil then
     Blizzard:SetCVar("countdownForCooldowns", profile.blizzardCountdown and 1 or 0)
   end
-  if Client.modern and profile.hideBlizzardAuras then
+  if Client.modern and profile.enabled ~= false and profile.hideBlizzardAuras then
     Blizzard:HideAuras(profile)
   else
     applyFriendlyDebuffs(profile)
