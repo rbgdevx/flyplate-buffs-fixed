@@ -134,6 +134,7 @@ end
 
 function DisplayOptions:Build()
   local general = {
+    targetOnly = Controls:Toggle("Target only", 1.5),
     settings = Controls:Row(1, {
       hidePermanent = Controls:Toggle("Hide unlisted permanent auras", 1),
       showTooltip = Controls:Toggle("Show tooltip", 2),
@@ -141,7 +142,6 @@ function DisplayOptions:Build()
     }),
   }
   local args = {
-    targetOnly = Controls:Toggle("Target only", 0.5),
     general = Controls:Group("General", 5, general),
     units = Controls:Group("Which nameplates?", 20, {
       relation = Controls:Row(1, {
@@ -168,8 +168,6 @@ function DisplayOptions:Build()
     args.friendlyDebuffs = broadSection("modernFriendlyDebuffs", "Friendly debuffs", 3, false)
     args.friendlyBuffs = spellSection("showBuffs", "Friendly buffs", 4)
   else
-    args.targetRow = Controls:Row(0, { targetOnly = args.targetOnly })
-    args.targetOnly = nil
     args.debuffsRow = Controls:Row(1, { showDebuffs = Controls:Select("Show debuffs", 1, modes) })
     args.buffsRow = Controls:Row(2, { showBuffs = Controls:Select("Show buffs", 1, modes) })
     general.personal = Controls:Row(2, {
