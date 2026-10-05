@@ -86,8 +86,8 @@ local function leave(hit)
   end
 end
 
-local function click(scene, kind, _, button)
-  if button == "LeftButton" and scene.onSelect then
+local function click(scene, kind, target, button)
+  if button == "LeftButton" and not target.dragged and scene.onSelect then
     scene.onSelect(kind)
   end
 end
@@ -99,7 +99,7 @@ local function hitRegion(scene, parent, target, kind, hint)
   hit:SetBackdropBorderColor(1, 0.82, 0, 0)
   hit.hint = hint
   PreviewViewport:Bind(scene.viewport, hit)
-  hit:SetScript("OnMouseDown", GenerateClosure(click, scene, kind))
+  hit:SetScript("OnMouseUp", GenerateClosure(click, scene, kind))
   hit:SetScript("OnEnter", hover)
   hit:SetScript("OnLeave", leave)
   hit:SetScript("OnHide", leave)
