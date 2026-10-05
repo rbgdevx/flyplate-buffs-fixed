@@ -2,56 +2,39 @@
 
 ## PR #4: Settings require explicit approval — 2026-10-05
 
-Status: directed by the maintainer in this chat.
+Status: final scope explicitly accepted by the maintainer in this chat on
+2026-10-05, after reviewing the individual controls and dropdown choices.
 
-Do not invent settings. New settings require an explicit request or approval
-before implementation; broad rewrite, UI cleanup, or parity requests do not
-authorize unrelated controls. This policy applies to both FPB and Nameplate
-Auras. The maintainer explicitly ordered removal of assistant-invented settings
-after discovering the in-addon Enable checkbox.
+Do not invent settings. New settings require the maintainer's explicit request
+or approval; broad rewrite, UI cleanup, and parity requests do not authorize
+unrelated controls. This policy applies to both FPB and Nameplate Auras.
 
-Remove the in-addon Enable and Allow tooltips in combat settings, their runtime
-branches, and their saved flags. Preserve original FPB settings and additions
-with a direct user request, including Target only (2026-10-01), the category
-controls, and the requested preview controls. Nameplate Auras also loses its
-unrequested Show stacks switch; original FPB always rendered stacks.
+Remove only these two controls from both addons:
+- The internal Enable checkbox, its saved flag, and its runtime branches.
+- The separate per-style-group icon cap, its saved value, and its live/preview
+  limits. Classic FPB retains its original Icons per row and Maximum rows.
 
-Remove the separately scoped per-group icon cap on modern clients. Keep the
-Classic total row limit. Restrict aura and plate anchor menus to the original
-bottom-three and top-three choices. Modern sorting keeps duration, default,
-reverse, mine-first, and larger-first behavior; remove name, application-order,
-defensive, important, debuff-priority, and listed-first additions. Clear only
-retired saved keys/choices so they cannot keep controlling hidden behavior.
+Keep all other controls discussed in the audit, including the six additional
+modern sort methods (Name, NameOnly, AuraInstanceIDOnly, BigDefensive,
+ImportantOnly, UnitFrameDebuff), listed-first group ordering, Allow tooltips in
+combat, all nine choices in both anchor dropdowns, and Nameplate Auras' Show
+stacks and extra duration/stack positions. Preserve their saved values and
+existing defaults. Original FPB settings and directly requested additions,
+including Target only, category filters, spell controls, and preview controls,
+remain. Retaining NPA-only controls does not add them to FPB.
 
-This supersedes the internal-enable behavior introduced during this PR,
-including its native-aura restore/reapply branches. The CVar policy below
-remains in effect.
+This final decision supersedes the earlier blanket-removal direction and the
+intermediate removal of those subsequently approved controls. The initial
+concern was the assistant-added Enable setting; the maintainer narrowed the
+scope after distinguishing new controls from extra dropdown choices. No
+internal-enable state or restore/reapply branch tied to it is retained.
 
-Follow-up: after seeing the individual controls, the maintainer explicitly
-approved keeping all six additional modern sort methods (Name, NameOnly,
-AuraInstanceIDOnly, BigDefensive, ImportantOnly, UnitFrameDebuff) and the
-listed-first group order in both addons. Restore those choices and preserve
-their saved values without removing original sorting choices. He also approved
-keeping Nameplate Auras' Show stacks switch and extra duration/stack positions.
-This supersedes their removal above. Enable, combat-tooltip permission, and
-the per-style-group cap remain removed. The anchor question requested an
-explanation; it did not approve restoring the extra anchor choices or adding
-Nameplate Auras-only controls to FPB.
+The CVar ownership decision below remains in effect. Logout does not restore
+explicit game-setting changes in anticipation of disable or uninstall.
 
-Further follow-up: the maintainer explicitly approved keeping Allow tooltips
-in combat in both addons. Restore the existing checkbox, true default, saved
-choice, and Classic/native tooltip behavior. This supersedes its removal above.
-
-Anchor follow-up: after clarifying that these were additional choices in the
-existing dropdowns, the maintainer approved retaining all nine points in both
-Aura anchor and Nameplate anchor, in both addons. Restore the choices and
-preserve their saved values; retain the existing default attachment. This
-supersedes the anchor restrictions above. Only the internal Enable control
-and per-style-group cap remain removed from the audited controls.
-
-Validation: the full local check script passes, including saved-profile cleanup
-and five-client lifecycle fixtures. No live-client validation of these removals
-has been performed.
+Validation: the full local check script passes, including saved-profile
+preservation and five-client lifecycle fixtures. The latest settings changes
+have automated coverage only; they have not been deployed for client testing.
 
 ## PR #4: CVar ownership — 2026-10-05
 
