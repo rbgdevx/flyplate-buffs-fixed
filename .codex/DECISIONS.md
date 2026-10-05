@@ -27,6 +27,17 @@ This supersedes the internal-enable behavior introduced during this PR,
 including its native-aura restore/reapply branches. The CVar policy below
 remains in effect.
 
+Follow-up: after seeing the individual controls, the maintainer explicitly
+approved keeping all six additional modern sort methods (Name, NameOnly,
+AuraInstanceIDOnly, BigDefensive, ImportantOnly, UnitFrameDebuff) and the
+listed-first group order in both addons. Restore those choices and preserve
+their saved values without removing original sorting choices. He also approved
+keeping Nameplate Auras' Show stacks switch and extra duration/stack positions.
+This supersedes their removal above. Enable, combat-tooltip permission, and
+the per-style-group cap remain removed. The anchor question requested an
+explanation; it did not approve restoring the extra anchor choices or adding
+Nameplate Auras-only controls to FPB.
+
 Validation: the full local check script passes, including saved-profile cleanup
 and five-client lifecycle fixtures. No live-client validation of these removals
 has been performed.

@@ -118,14 +118,6 @@ local function removeUnrequestedSettings(profile)
   profile.tooltipInCombat = nil
   profile.modernMaxPerGroup = nil
 
-  local method = profile.modernSortMethod
-  if method ~= "Default" and method ~= "Expiration" and method ~= "ExpirationOnly" then
-    profile.modernSortMethod = nil
-  end
-  if profile.modernGroupOrder == "listed" then
-    profile.modernGroupOrder = nil
-  end
-
   local anchor = profile.buffAnchorPoint
   if anchor ~= "BOTTOMLEFT" and anchor ~= "BOTTOM" and anchor ~= "BOTTOMRIGHT" then
     profile.buffAnchorPoint = nil

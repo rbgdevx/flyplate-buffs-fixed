@@ -31,7 +31,7 @@ local function copy(source)
   return result
 end
 
-local function append(groups, profile, filter, candidates, rule, mine)
+local function append(groups, profile, filter, candidates, rule, mine, exact)
   if profile.hidePermanent and not rule then
     candidates.maxDuration = mhuge
   end
@@ -40,6 +40,7 @@ local function append(groups, profile, filter, candidates, rule, mine)
     candidates = candidates,
     style = Appearance:Spell(profile, rule, mine),
     mine = mine,
+    exact = exact,
     order = #groups + 1,
   }
   groups[#groups + 1] = group
@@ -48,7 +49,7 @@ end
 
 local function split(groups, profile, filter, candidates, onlyMine)
   for _, mine in ipairs(onlyMine and { true } or { true, false }) do
-    append(groups, profile, filter, copy(candidates), nil, mine)
+    append(groups, profile, filter, copy(candidates), nil, mine, false)
   end
 end
 
@@ -85,7 +86,7 @@ local function addExact(groups, profile, friendly)
         local key = tconcat({ style.scale, style.durationSize, style.stackSize, tostring(mine) }, ":")
         local group = styles[key]
         if not group then
-          group = append(groups, profile, filter, { includeSpellIDs = {} }, rule, mine)
+          group = append(groups, profile, filter, { includeSpellIDs = {} }, rule, mine, true)
           styles[key] = group
         end
         group.candidates.includeSpellIDs[id] = true
@@ -130,6 +131,9 @@ end
 local function compare(order, a, b)
   if order == "mine" and a.mine ~= b.mine then
     return a.mine
+  end
+  if order == "listed" and a.exact ~= b.exact then
+    return a.exact
   end
   if order == "larger" and a.style.scale ~= b.style.scale then
     return a.style.scale > b.style.scale
