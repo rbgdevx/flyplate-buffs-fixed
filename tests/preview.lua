@@ -101,7 +101,9 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     return {
       SetAnchorPoint = function() end,
       SetGrowthDirection = function() end,
-      SetMaximumLineSize = function() end,
+      SetMaximumLineSize = function(_, value)
+        state.previewLineSize = value
+      end,
       Apply = function(_, block, groups)
         local width, height = 0, 0
         for _, group in ipairs(groups) do
@@ -204,6 +206,22 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     return buttons
   end
   H.equal(#visibleButtons(), 6, "general preview starts with six samples")
+  if ns.Client.modern then
+    local profile = ns.db.profile
+    local width, gap, count = profile.baseWidth, profile.xInterval, profile.buffPerLine
+    for _, case in ipairs({
+      { 5, -10, 2, 5 },
+      { 5, -10, 3, 5 },
+      { 5, -2, 3, 11 },
+      { 24, 2, 3, 76 },
+    }) do
+      profile.baseWidth, profile.xInterval, profile.buffPerLine = case[1], case[2], case[3]
+      ns.Preview:Refresh()
+      H.equal(state.previewLineSize, case[4], "preview uses the same bounded row width as live icons")
+    end
+    profile.baseWidth, profile.xInterval, profile.buffPerLine = width, gap, count
+    ns.Preview:Refresh()
+  end
   local expected = { [118] = 1, [642] = 1, [853] = 1, [339] = 1, [1044] = 1, [2094] = 1 }
   local function sampleCounts()
     local counts = {}
