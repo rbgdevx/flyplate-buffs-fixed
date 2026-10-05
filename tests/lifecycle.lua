@@ -87,6 +87,16 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     assert(button and button.unit == "nameplate1")
     H.equal(button:GetWidth(), 24 * 1.2)
     H.equal(plate.UnitFrame.AurasFrame.alpha, 0, "hide native auras on supported Classic nameplates")
+    local auraFrame = button:GetParent()
+    H.equal(auraFrame.strata, "HIGH", "Classic aura frames retain the original explicit layer")
+    profile.parentWorldFrame = true
+    ns.Settings:Apply()
+    H.equal(auraFrame:GetParent(), state.env.WorldFrame)
+    H.equal(auraFrame.strata, "HIGH", "full-opacity mode retains the aura layer after reparenting")
+    profile.parentWorldFrame = false
+    ns.Settings:Apply()
+    H.equal(auraFrame:GetParent(), plate)
+    H.equal(auraFrame.strata, "HIGH", "restoring plate parenting retains the aura layer")
     profile.showTooltip, profile.tooltipInCombat = true, false
     ns.Settings:Apply()
     button.scripts.OnEnter(button)

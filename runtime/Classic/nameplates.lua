@@ -104,6 +104,7 @@ function Runtime:AddUnit(unit)
   local state = displays[plate]
   if not state then
     state = { plate = plate, frame = CreateFrame("Frame", nil, plate), buttons = {}, auras = {}, order = {} }
+    state.frame:SetFrameStrata("HIGH")
     displays[plate] = state
   elseif state.unit and state.unit ~= unit then
     units[state.unit] = nil
