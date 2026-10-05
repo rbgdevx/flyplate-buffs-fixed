@@ -129,6 +129,9 @@ function Helpers.environment(interface, saved)
   function methods:SetFrameLevel(level)
     self.level = level
   end
+  function methods:SetFrameStrata(strata)
+    self.strata = strata
+  end
   function methods:CreateTexture()
     return frame(nil, self)
   end
