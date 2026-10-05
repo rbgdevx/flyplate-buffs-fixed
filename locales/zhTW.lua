@@ -1,12 +1,14 @@
 local _, fPB = ...
 
+local GetLocale = GetLocale
+
+local L = fPB.L
+
 if GetLocale() ~= "zhTW" then
   return
 end
 
 --You can help with translation at https://wow.curseforge.com/projects/flyPlateBuffsFixed/localization
-
-local L = fPB.L
 
 L[" already in the list."] = " 已經在清單中。"
 L[" ID changed "] = " ID 已變更 "

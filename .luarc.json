@@ -11,8 +11,6 @@
     ".vscode",
     ".claude",
     "libs/AceConfig-3.0",
-    "libs/AceDB-3.0",
-    "libs/AceDBOptions-3.0",
     "libs/AceGUI-3.0",
     "libs/AceGUI-3.0-SharedMediaWidgets",
     "libs/CallbackHandler-1.0",
@@ -30,6 +28,11 @@
     "return-type-mismatch"
   ],
   "diagnostics.globals": [
+    "C_AddOns",
+    "GetCursorPosition",
+    "C_Timer",
+    "NamePlateEnemyFrameOptions",
+    "NamePlateSetupOptions",
     "flyPlateBuffsFixed",
     "flyPlateBuffsFixedDB",
     "LibStub",
