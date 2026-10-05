@@ -7,6 +7,7 @@ local AuraContainerSortDirection = AuraContainerSortDirection
 local AuraContainerSortMethod = AuraContainerSortMethod
 local CreateFrame = CreateFrame
 local GenerateClosure = GenerateClosure
+local mmax = math.max
 local FlowDirection = AnchorUtil.FlowDirection
 
 local Style = fPB.Style
@@ -62,7 +63,9 @@ local function positionContainer(state, profile)
   local position = profile.position
   container:ClearAllPoints()
   container:SetPoint(position.anchor, state.plate, position.relativeAnchor, position.x, position.y)
-  container:SetFlowLayoutMaximumLineSize(position.perRow * profile.style.width + (position.perRow - 1) * position.gapX)
+  container:SetFlowLayoutMaximumLineSize(
+    mmax(profile.style.width, position.perRow * profile.style.width + (position.perRow - 1) * position.gapX)
+  )
   container:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
   container:SetFlowLayoutGrowthDirection(FlowDirection.Right, FlowDirection.Up)
 end

@@ -52,6 +52,20 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     end
     assert(active, "native container enabled")
     assert(not state.frames.flyPlateBuffsFixedFrame.scripts.UNIT_AURA)
+    local width, gap, count = profile.baseWidth, profile.xInterval, profile.buffPerLine
+    for _, case in ipairs({
+      { 5, -10, 2, 5 },
+      { 5, -10, 3, 5 },
+      { 5, -2, 3, 11 },
+      { 24, 2, 3, 76 },
+    }) do
+      profile.baseWidth, profile.xInterval, profile.buffPerLine = case[1], case[2], case[3]
+      ns.Settings:Apply()
+      H.equal(active.maximumLineSize, case[4], "native row width remains at least one base-size icon")
+      H.equal(profile.xInterval, case[2], "overlap setting is preserved")
+    end
+    profile.baseWidth, profile.xInterval, profile.buffPerLine = width, gap, count
+    ns.Settings:Apply()
     event(nil, "NAME_PLATE_UNIT_REMOVED", "nameplate1")
     assert(not active.enabled)
     state.plates.nameplate1 = nil

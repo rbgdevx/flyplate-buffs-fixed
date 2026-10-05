@@ -281,7 +281,7 @@ function PreviewScene:Refresh(scene, profile, selected, more, animate)
   end
   if Client.modern then
     scene.layout:SetMaximumLineSize(
-      profile.buffPerLine * profile.baseWidth + (profile.buffPerLine - 1) * profile.xInterval
+      mmax(profile.baseWidth, profile.buffPerLine * profile.baseWidth + (profile.buffPerLine - 1) * profile.xInterval)
     )
     scene.layout:Apply(scene.block, flowGroups)
     scene.block:ClearAllPoints()

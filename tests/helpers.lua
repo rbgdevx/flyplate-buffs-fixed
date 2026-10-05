@@ -65,7 +65,6 @@ function Helpers.environment(interface, saved)
     "ClearDurationCooldown",
     "ClearDispelTypeTextures",
     "AddDispelTypeTexture",
-    "SetFlowLayoutMaximumLineSize",
     "SetFlowLayoutAnchorPoint",
     "SetFlowLayoutGrowthDirection",
     "SetAuraGroupLayout",
@@ -202,6 +201,9 @@ function Helpers.environment(interface, saved)
   function methods:SetAuraGroupSortMethod(key, method)
     assert(method ~= nil)
     self.groups[key].options.sortMethod = method
+  end
+  function methods:SetFlowLayoutMaximumLineSize(value)
+    self.maximumLineSize = value
   end
   function methods:GetAuraGroupFrameCount(key)
     return #self.groups[key].frames
