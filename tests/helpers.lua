@@ -81,6 +81,15 @@ function Helpers.environment(interface, saved)
   function methods:SetScript(name, callback)
     self.scripts[name] = callback
   end
+  function methods:HookScript(name, callback)
+    local previous = self.scripts[name]
+    self.scripts[name] = function(...)
+      if previous then
+        previous(...)
+      end
+      callback(...)
+    end
+  end
   function methods:SetCallback(name, callback)
     self.scripts[name] = callback
   end
@@ -383,7 +392,9 @@ function Helpers.environment(interface, saved)
       return false
     end,
   }
-  env.TooltipDataProcessor = { AddTooltipPostCall = function() end }
+  if interface ~= 11509 then
+    env.TooltipDataProcessor = { AddTooltipPostCall = function() end }
+  end
   env.AuraContainerSortMethod =
     { Default = 0, Expiration = 4, ExpirationOnly = 5, Name = 6, NameOnly = 7, AuraInstanceIDOnly = 8 }
   env.AuraContainerSortDirection = { Normal = 0, Reverse = 1 }

@@ -6,7 +6,7 @@ cd "$repo_root"
 luacheck . --no-color
 stylua --check core spells interface runtime options locales localization.lua flyPlateBuffsFixed.lua tests/*.lua
 bash -n deploy-to-wow.sh package-addon.sh scripts/check.sh
-for test_file in tests/compatibility.lua tests/profiles.lua tests/rules.lua tests/lifecycle.lua tests/blizzard.lua tests/options.lua tests/preview.lua tests/preview-nameplate.lua; do
+for test_file in tests/compatibility.lua tests/profiles.lua tests/rules.lua tests/lifecycle.lua tests/tooltips.lua tests/blizzard.lua tests/options.lua tests/preview.lua tests/preview-nameplate.lua; do
   lua "$test_file"
 done
 python3 -B tests/spell-rank-generator.py
