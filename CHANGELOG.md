@@ -1,5 +1,10 @@
 # flyPlateBuffsFixed
 
+## [v12.1.5.1](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.1) (2026-10-16)
+
+- Fixing classic erra bugs
+- Fixing ace config bug
+
 ## [v12.1.5](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5) (2026-10-15)
 
 - Updating libs
