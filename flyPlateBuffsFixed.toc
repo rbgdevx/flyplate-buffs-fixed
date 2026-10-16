@@ -1,6 +1,6 @@
 ## Interface: 120105, 16001, 50504, 20506, 11509
 ## Title: flyPlateBuffsFixed
-## Version: 12.1.5
+## Version: 12.1.5.1
 ## Author: RBGDEV
 ## Notes: Shows buffs/debuffs on nameplates
 ## SavedVariables: flyPlateBuffsFixedDB

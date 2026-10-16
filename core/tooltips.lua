@@ -1,21 +1,25 @@
 local _, fPB = ...
 
-local Enum = Enum
-local TooltipDataProcessor = TooltipDataProcessor
+local GameTooltip = GameTooltip
 
 local Client = fPB.Client
 
 local Tooltips = {}
 fPB.Tooltips = Tooltips
 
-local function addSpellID(tooltip, data)
-  if fPB.db.profile.showSpellID and data.id then
-    tooltip:AddLine("Spell ID: " .. data.id)
+local function addSpellID(tooltip)
+  if not fPB.db.profile.showSpellID then
+    return
+  end
+
+  local _, spellID = tooltip:GetSpell()
+  if spellID then
+    tooltip:AddLine("Spell ID: " .. spellID)
   end
 end
 
 function Tooltips:Initialize()
   if not Client.modern then
-    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, addSpellID)
+    GameTooltip:HookScript("OnTooltipSetSpell", addSpellID)
   end
 end

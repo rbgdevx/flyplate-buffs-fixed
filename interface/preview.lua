@@ -44,7 +44,7 @@ local function restoreOwner()
       height = ownerState.height
       owner:SetHeight(height)
     end
-    owner.status.height = height
+    ownerState.status.height = height
     ownerState.height, ownerState.forcedHeight = nil, nil
   end
 end
@@ -67,7 +67,7 @@ local function fitDock(visible)
       ownerState.height = currentHeight
     end
     owner:SetHeight(maximum)
-    owner.status.height = maximum
+    ownerState.status.height = maximum
     ownerState.forcedHeight = maximum
   end
   owner.frame:SetClampRectInsets(0, 0, extension, 0)
@@ -334,6 +334,7 @@ function Preview:Attach(widget)
     owner = widget
     local frame = owner.frame
     ownerState = {
+      status = owner.status,
       insets = { frame:GetClampRectInsets() },
       bounds = { frame:GetResizeBounds() },
       clamped = frame:IsClampedToScreen(),

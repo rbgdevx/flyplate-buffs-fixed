@@ -185,6 +185,14 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   owner.frame:SetSize(900, 650)
   owner.frame:Show()
   owner.status = { height = 650 }
+  local savedStatus = owner.status
+  local releaseOwner = false
+  owner.frame:SetScript("OnHide", function()
+    if releaseOwner then
+      -- AceGUI releases the widget before the preview's OnHide hook runs.
+      owner.status = nil
+    end
+  end)
   function owner:SetHeight(value)
     self.frame:SetHeight(value)
   end
@@ -481,8 +489,25 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   owner:SetHeight(1000)
   owner.status.height = 1000
   showPage("style")
+  releaseOwner = true
   owner.frame:Hide()
   H.equal(owner.frame:GetHeight(), 1000, "closing settings restores its pre-preview height")
-  H.equal(owner.status.height, 1000)
+  H.equal(owner.status, nil, "restoration does not revive a released widget's status")
+  H.equal(savedStatus.height, 1000, "restore the original status after AceGUI clears the widget reference")
+  assert(not dock:IsShown() and dock:GetParent() == env.UIParent)
+
+  releaseOwner = false
+  owner.status = { height = 650 }
+  owner:SetHeight(650)
+  owner.frame:Show()
+  env.UIParent:SetHeight(700)
+  ns.Options.selectedPage = "display"
+  ns.Preview:Attach(owner)
+  ns.Options:TogglePreview()
+  H.equal(owner.status.height, 700 - (height - 8) - 32, "a reused widget updates its new status table")
+  H.equal(savedStatus.height, 1000, "reusing a widget does not alter its previous status table")
+  ns.Options:TogglePreview()
+  H.equal(owner.frame:GetHeight(), 650)
+  H.equal(owner.status.height, 650, "the reused widget's height is restored")
   print("Simulated dock, preview controls, selection and animation:", interface)
 end
