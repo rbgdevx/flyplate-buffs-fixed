@@ -1,5 +1,5 @@
 local H = dofile("tests/helpers.lua")
-for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
+for _, interface in ipairs({ 11509, 20506, 50504, 120100, 120105, 16001 }) do
   local state = H.environment(interface)
   state.env.UnitIsUnit = function(a, b)
     return a == b or b == "target" and a == state.target
@@ -69,6 +69,41 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     end
     profile.baseWidth, profile.xInterval, profile.buffPerLine = width, gap, count
     ns.Settings:Apply()
+
+    -- Source-grounded group API doubles; these checks do not run native parsing.
+    local originalGroups = {}
+    for key, group in pairs(active.groups) do
+      originalGroups[key] = group
+    end
+    assert(next(originalGroups), "The lifecycle fixture has groups to retire")
+    local originalDebuffs, originalBuffs = profile.showDebuffs, profile.modernEnemyBuffs
+    local created = #state.created
+    profile.showDebuffs, profile.modernEnemyBuffs = 5, { mode = "none" }
+    ns.Settings:Apply()
+    for _, group in pairs(active.groups) do
+      if active.SetAuraGroupEnabled then
+        assert(not group.enabled, "Unused groups are disabled through the native API")
+      else
+        H.equal(group.options.maxFrameCount, 0, "Older clients retain zero-frame retirement")
+      end
+    end
+    local writes = state.groupEnableWrites or 0
+    ns.Settings:Apply()
+    H.equal(state.groupEnableWrites or 0, writes, "Repeated Apply does not toggle retired groups again")
+    profile.showDebuffs, profile.modernEnemyBuffs = originalDebuffs, originalBuffs
+    ns.Settings:Apply()
+    for key, group in pairs(active.groups) do
+      assert(group == originalGroups[key], "Reactivation reuses existing groups")
+      if active.SetAuraGroupEnabled then
+        assert(group.enabled, "Reused groups are re-enabled")
+      end
+      H.equal(group.options.maxFrameCount, math.huge, "Reused groups retain unlimited frames")
+    end
+    H.equal(#state.created, created, "Retirement and reuse retain existing containers and frames")
+    writes = state.groupEnableWrites or 0
+    ns.Settings:Apply()
+    H.equal(state.groupEnableWrites or 0, writes, "Repeated Apply does not toggle active groups again")
+
     event(nil, "NAME_PLATE_UNIT_REMOVED", "nameplate1")
     assert(not active.enabled)
     state.plates.nameplate1 = nil

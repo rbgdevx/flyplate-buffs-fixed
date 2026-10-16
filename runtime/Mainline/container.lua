@@ -95,10 +95,21 @@ local function configure(state, profile, recipe, previousRecipe)
     end
 
     layoutGroup(container, key, index, profile.position)
+
+    if container.SetAuraGroupEnabled and not container:IsAuraGroupEnabled(key) then
+      container:SetAuraGroupEnabled(key, true)
+    end
   end
 
   for index = #recipe + 1, #state.groups do
-    container:SetAuraGroupMaxFrameCount(tostring(index), 0)
+    local key = tostring(index)
+    if container.SetAuraGroupEnabled then
+      if container:IsAuraGroupEnabled(key) then
+        container:SetAuraGroupEnabled(key, false)
+      end
+    else
+      container:SetAuraGroupMaxFrameCount(key, 0)
+    end
   end
 end
 

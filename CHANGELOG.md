@@ -1,5 +1,18 @@
 # flyPlateBuffsFixed
 
+## [v12.1.5](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5) (2026-10-15)
+
+- Updating libs
+- Fixing area groups bug
+- Updating toc
+
+## [v12.1.0.1](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.0.1) (2026-10-05)
+
+- Adding support for Retail and Forever
+- Updated settings
+- Improved spell search and customization
+- Interactive preview with zoom, animation, and a movable, resizable window
+
 ## [v11.2.7.3](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v11.2.7.3) (2026-07-14)
 
 - Fixing debuffs not showing on duel opponents

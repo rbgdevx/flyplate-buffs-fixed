@@ -5,11 +5,7 @@
 -- Beta spellbook ranks only; this is not a complete applied-aura catalog.
 local _, NS = ...
 
-local select = select
-local GetBuildInfo = GetBuildInfo
-
-local interfaceVersion = select(4, GetBuildInfo())
-if interfaceVersion < 16000 or interfaceVersion >= 20000 then
+if WOW_PROJECT_ID ~= WOW_PROJECT_CAMELOT then
   return
 end
 

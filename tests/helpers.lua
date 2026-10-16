@@ -187,7 +187,7 @@ function Helpers.environment(interface, saved)
   end
   function methods:AddAuraGroup(key, filter, options)
     assert(options.sortMethod ~= nil and options.sortDirection ~= nil)
-    self.groups[key] = { filter = filter, options = options, frames = {} }
+    self.groups[key] = { enabled = true, filter = filter, options = options, frames = {} }
     local button = frame(nil, self)
     options.initializeFrame(button)
     self.groups[key].frames[1] = button
@@ -200,6 +200,17 @@ function Helpers.environment(interface, saved)
   end
   function methods:SetAuraGroupMaxFrameCount(key, count)
     self.groups[key].options.maxFrameCount = count
+  end
+  if interface >= 120105 or interface == 16001 then
+    function methods:IsAuraGroupEnabled(key)
+      return self.groups[key].enabled
+    end
+    function methods:SetAuraGroupEnabled(key, enabled)
+      assert(type(enabled) == "boolean")
+      self.groups[key].enabled = enabled
+      -- The managed native setter updates all auras even for unchanged values.
+      state.groupEnableWrites = (state.groupEnableWrites or 0) + 1
+    end
   end
   function methods:SetAuraGroupSortMethod(key, method)
     assert(method ~= nil)
@@ -222,6 +233,9 @@ function Helpers.environment(interface, saved)
   end
   env.UIParent, env.WorldFrame, env.GameTooltip = frame(), frame(), frame()
   env.GameTooltip.Hide = methods.Hide
+  env.WOW_PROJECT_MAINLINE = 1
+  env.WOW_PROJECT_CAMELOT = interface == 16001 and 18 or nil
+  env.WOW_PROJECT_ID = ({ [11509] = 2, [20506] = 5, [50504] = 19, [16001] = 18 })[interface] or 1
   env.GetBuildInfo = function()
     return "test", "1", "date", interface
   end

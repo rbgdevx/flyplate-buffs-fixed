@@ -4,8 +4,9 @@ local select = select
 local GetBuildInfo = GetBuildInfo
 
 local interface = select(4, GetBuildInfo())
+local IsForever = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT
 fPB.Client = {
   interface = interface,
-  forever = interface >= 16000 and interface < 20000,
-  modern = interface >= 120000 or (interface >= 16000 and interface < 20000),
+  forever = IsForever,
+  modern = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or IsForever,
 }

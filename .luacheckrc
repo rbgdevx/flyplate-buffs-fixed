@@ -47,7 +47,7 @@ read_globals = {
   "Masque", "ReloadUI", "SetCVar", "Settings", "TooltipDataProcessor", "UIParent",
   "UnitAffectingCombat", "UnitAura", "UnitBuff", "UnitDebuff", "UnitIsEnemy",
   "UnitIsFriend", "UnitIsPlayer", "UnitIsUnit", "UnitName", "UnitPlayerControlled",
-  "UnitSelectionColor", "WOW_PROJECT_CLASSIC", "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE",
+  "UnitSelectionColor", "WOW_PROJECT_CAMELOT", "WOW_PROJECT_CLASSIC", "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE",
   "WorldFrame", "abs", "ceil", "date", "debugprofilestop", "floor", "format", "geterrorhandler",
   "hooksecurefunc", "max", "min",
   "issecretvalue", "securecallfunction", "sort", "strfind", "strmatch", "strsplit",
