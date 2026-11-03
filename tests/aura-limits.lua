@@ -195,7 +195,7 @@ for _, interface in ipairs({ 120105, 16001 }) do
     local row = options.args.display.args[section.name].args.show
     local toggle, range = row.args[flag], row.args[section.key]
     local path = { "display", section.name, "show", flag }
-    assert(toggle.type == "toggle" and toggle.name == "Unlimited" and toggle.order > range.order)
+    assert(toggle.type == "toggle" and toggle.name == "Unlimited icons" and toggle.order > range.order)
     assert(toggle.confirm(path, true) and not toggle.confirm(path, false), "Only enabling requires acknowledgment")
     assert(toggle.confirmText:find("may impact performance", 1, true))
     assert(not options.get(path) and not range.disabled(), "Opening the control does not enable Unlimited")

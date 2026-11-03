@@ -62,9 +62,9 @@ local function confirmUnlimited(_, value)
 end
 
 local function unlimitedToggle()
-  local toggle = Controls:Toggle("Unlimited", 4)
+  local toggle = Controls:Toggle("Unlimited icons", 4)
   toggle.confirm = confirmUnlimited
-  toggle.confirmText = L["Unlimited icons may impact performance. Continue?"]
+  toggle.confirmText = L["Unlimited icons may impact performance."]
   return toggle
 end
 
