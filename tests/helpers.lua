@@ -511,7 +511,12 @@ function Helpers.environment(interface, saved)
       return id
     end,
   }
+  state.cvarFlags = {}
   env.C_CVar = {
+    GetCVarInfo = function(key)
+      local flags = state.cvarFlags[key] or {}
+      return state.cvars[key], state.cvars[key], false, false, false, flags.secure or false, flags.readOnly or false
+    end,
     GetCVar = function(key)
       return state.cvars[key]
     end,

@@ -128,8 +128,9 @@ local function addBroad(groups, profile, friendly)
 end
 
 local function limitGroups(groups, profile, friendly)
-  local buffLimit = profile[friendly and "friendlyBuffLimit" or "enemyBuffLimit"]
-  local debuffLimit = profile[friendly and "friendlyDebuffLimit" or "enemyDebuffLimit"]
+  local prefix = friendly and "friendly" or "enemy"
+  local buffLimit = profile[prefix .. "BuffUnlimited"] and mhuge or profile[prefix .. "BuffLimit"]
+  local debuffLimit = profile[prefix .. "DebuffUnlimited"] and mhuge or profile[prefix .. "DebuffLimit"]
   for _, group in ipairs(groups) do
     group.maxFrameCount = ssub(group.filter, 1, 7) == "HELPFUL" and buffLimit or debuffLimit
   end

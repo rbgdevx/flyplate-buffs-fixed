@@ -191,3 +191,63 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   end
   print("Spell tree callbacks, preview selection and display settings:", interface)
 end
+
+-- Ordinary setting edits must remain available while native aura frames are
+-- restricted; only application to those frames is deferred.
+for _, interface in ipairs({ 11509, 20506, 50504, 120105, 16001 }) do
+  local state = H.environment(interface)
+  local ns, env = state.ns, state.env
+  local dialog = env.LibStub("AceConfigDialog-3.0")
+  local opens, closes = 0, 0
+  dialog.Open = function(self, appName)
+    opens = opens + 1
+    local window = {}
+    function window:Hide()
+      closes = closes + 1
+      dialog.OpenFrames[appName] = nil
+    end
+    self.OpenFrames[appName] = window
+  end
+  H.loadAddon(state)
+  local event = state.frames.flyPlateBuffsFixedFrame.scripts.OnEvent
+  local options = state.registry:GetOptionsTable("flyPlateBuffsFixed")("dialog", "Test-1.0")
+  state.secret = ns.Client.modern
+  assert(not options.disabled(), "Secret aura data does not disable the settings tree")
+  options.set({ "display", "targetOnly" }, true)
+  assert(ns.db.profile.targetOnly, "Ordinary profile edits remain usable in an instance")
+  if ns.Client.modern then
+    assert(ns.Settings.pending, "Restricted native updates still defer at Settings.Apply")
+    local display = options.args.display.args
+    display.friendlyDebuffs.args.show.args.mode.set(nil, "categories")
+    assert(not display.friendlyDebuffs.args.crowdControl.disabled())
+    assert(not display.enemyDebuffs.args.show.args.enemyDebuffLimit.disabled())
+  end
+  ns.Options.selectedPage = "profiles"
+  ns.Options:Open("profiles")
+  H.equal(opens, 1)
+  state.combat = true
+  event(nil, "PLAYER_REGEN_DISABLED")
+  H.equal(closes, 1, "Combat entry closes an open settings window")
+  assert(not dialog.OpenFrames.flyPlateBuffsFixed)
+  ns.Options:Open("spells")
+  H.equal(opens, 1, "Slash commands do not reopen settings in combat")
+  state.combat = false
+  event(nil, "PLAYER_REGEN_ENABLED")
+  H.equal(opens, 2, "Combat exit restores an automatically closed window")
+  H.equal(state.dialogSelection[1], "profiles", "The selected tab is restored")
+  event(nil, "PLAYER_REGEN_ENABLED")
+  H.equal(opens, 2, "Repeated state refresh does not reopen the window again")
+  dialog.OpenFrames.flyPlateBuffsFixed:Hide()
+  state.combat = true
+  event(nil, "PLAYER_REGEN_DISABLED")
+  state.combat = false
+  event(nil, "PLAYER_REGEN_ENABLED")
+  H.equal(opens, 2, "A manually closed window remains closed")
+  state.combat = true
+  dialog:Open("flyPlateBuffsFixed")
+  assert(not dialog.OpenFrames.flyPlateBuffsFixed, "Direct Ace opening also closes safely after Open returns")
+  state.combat = false
+  event(nil, "PLAYER_REGEN_ENABLED")
+  H.equal(opens, 4)
+end
+print("Out-of-combat instance settings, protected aura deferral and combat-only window restoration pass.")

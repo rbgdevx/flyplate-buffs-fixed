@@ -13,10 +13,10 @@ local UnitIsUnit = UnitIsUnit
 local UnitSelectionColor = UnitSelectionColor
 local GetCVar = C_CVar.GetCVar
 local GetCVarDefault = C_CVar.GetCVarDefault
+local GetCVarInfo = C_CVar.GetCVarInfo
 local SetCVar = C_CVar.SetCVar
 
 local Client = fPB.Client
-local Restrictions = fPB.Restrictions
 
 local Blizzard = {}
 fPB.Blizzard = Blizzard
@@ -55,17 +55,41 @@ local function restoreName(frame)
   end
 end
 
+local function canSetCVar(key)
+  if InCombatLockdown() or GetCVar(key) == nil then
+    return false
+  end
+  local _, _, _, _, _, secure, readOnly = GetCVarInfo(key)
+  return not secure and not readOnly
+end
+
+local function canSetValues(values)
+  if InCombatLockdown() then
+    return false
+  end
+  for key, value in pairs(values or {}) do
+    if GetCVar(key) ~= tostring(value) and not canSetCVar(key) then
+      return false
+    end
+  end
+  return true
+end
+
 local function setCVar(key, value)
   local current = GetCVar(key)
-  if current ~= nil and current ~= tostring(value) then
+  if current ~= nil and current ~= tostring(value) and canSetCVar(key) then
     SetCVar(key, value)
   end
 end
 
 local function restoreSavedAuras(values)
+  if not canSetValues(values) then
+    return false
+  end
   for key, value in pairs(values or {}) do
     setCVar(key, value)
   end
+  return true
 end
 
 local function applyFriendlyDebuffs(profile)
@@ -74,20 +98,65 @@ local function applyFriendlyDebuffs(profile)
   end
 end
 
+function Blizzard:CanSetCVar(key)
+  return canSetCVar(key)
+end
+
+function Blizzard:CanSetInsets()
+  return canSetCVar("nameplateOtherTopInset") and canSetCVar("nameplateOtherBottomInset")
+end
+
+function Blizzard:CanHideAuras()
+  if InCombatLockdown() then
+    return false
+  end
+  for _, key in ipairs(auraCVars) do
+    local value = GetCVar(key)
+    if value ~= nil and value ~= "0" and not canSetCVar(key) then
+      return false
+    end
+  end
+  return true
+end
+
+function Blizzard:CanRestoreAuras(profile)
+  return canSetValues(hiddenAuras or profile.blizzardAuras)
+end
+
 function Blizzard:SetCVar(key, value)
   setCVar(key, value)
 end
 
 function Blizzard:ResetCVar(key)
+  if GetCVar(key) == nil then
+    return
+  end
   local value = GetCVarDefault(key)
   if value ~= nil then
     setCVar(key, value)
   end
 end
 
+function Blizzard:SetInsets(value)
+  if not Blizzard:CanSetInsets() then
+    return false
+  end
+  if value then
+    setCVar("nameplateOtherTopInset", -1)
+    setCVar("nameplateOtherBottomInset", -1)
+  else
+    Blizzard:ResetCVar("nameplateOtherTopInset")
+    Blizzard:ResetCVar("nameplateOtherBottomInset")
+  end
+  return true
+end
+
 function Blizzard:HideAuras(profile)
+  if not Blizzard:CanHideAuras() then
+    return
+  end
   profile.hideBlizzardAuras = true
-  if Restrictions:Active() then
+  if not fPB.Settings.ready then
     return
   end
   profile.blizzardAuras = profile.blizzardAuras or {}
@@ -116,7 +185,9 @@ function Blizzard:Apply(profile)
     and (not profile.hideBlizzardAuras or profile.blizzardAuras ~= hiddenProfileValues)
   then
     -- Reset/copy can replace the active profile while native icons are hidden.
-    restoreSavedAuras(hiddenAuras)
+    if not restoreSavedAuras(hiddenAuras) then
+      return
+    end
     hiddenAuras, hiddenProfileValues = nil, nil
   end
   if profile.nameplateMaxDistance == false then
@@ -125,12 +196,8 @@ function Blizzard:Apply(profile)
   if profile.nameplateMaxDistance then
     Blizzard:SetCVar("nameplateMaxDistance", profile.nameplateMaxDistance)
   end
-  if profile.nameplateInset then
-    Blizzard:SetCVar("nameplateOtherTopInset", -1)
-    Blizzard:SetCVar("nameplateOtherBottomInset", -1)
-  elseif profile.nameplateInset == false then
-    Blizzard:ResetCVar("nameplateOtherTopInset")
-    Blizzard:ResetCVar("nameplateOtherBottomInset")
+  if profile.nameplateInset ~= nil then
+    Blizzard:SetInsets(profile.nameplateInset)
   end
   if profile.blizzardCountdown ~= nil then
     Blizzard:SetCVar("countdownForCooldowns", profile.blizzardCountdown and 1 or 0)
@@ -147,8 +214,10 @@ function Blizzard:Apply(profile)
 end
 
 function Blizzard:RestoreAuras(profile)
+  if not restoreSavedAuras(hiddenAuras or profile.blizzardAuras) then
+    return
+  end
   profile.hideBlizzardAuras = false
-  restoreSavedAuras(hiddenAuras or profile.blizzardAuras)
   hiddenAuras, hiddenProfileValues = nil, nil
   applyFriendlyDebuffs(profile)
   profile.blizzardAuras = nil

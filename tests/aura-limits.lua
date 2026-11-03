@@ -26,10 +26,13 @@ local function checkControls(state, options)
       H.equal(range.min, 1)
       H.equal(range.max, 10)
       H.equal(range.step, 1)
-      H.equal(row.args[section.dropdown].width, "double")
+      for _, control in ipairs({ row.args[section.dropdown], range, row.args[section.key:gsub("Limit$", "Unlimited")] }) do
+        H.equal(control.width, "relative", "Three-column controls use the bundled Ace relative sizing")
+        H.equal(control.relWidth, 1 / 3, "Each control uses one third of the available row")
+      end
       assert(range.order > row.args[section.dropdown].order, "the limit follows Show inside the same row")
       assert(range.desc:find("Multiple groups", 1, true), "the tooltip distinguishes per-group and total counts")
-      H.equal(range.disabled, nil, "inherited aura visibility does not disable a section's own limit")
+      assert(not range.disabled(), "bounded sections retain enabled sliders")
       local path = { "display", section.name, "show", section.key }
       H.equal(options.get(path), section.default)
       options.set(path, section.value)
@@ -175,3 +178,52 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120105, 16001 }) do
   end
   print("Per-section aura limits, existing controls and profile persistence:", interface)
 end
+
+-- AceConfig owns the Accept/Cancel popup; these checks exercise its option
+-- contract and our confirmed setter, not native popup rendering.
+for _, interface in ipairs({ 120105, 16001 }) do
+  local state = H.environment(interface)
+  H.loadAddon(state)
+  local ns = state.ns
+  local profile = ns.db.profile
+  local options = buildOptions(state)
+  profile.showDebuffs, profile.showBuffs = 1, 1
+  profile.modernEnemyBuffs, profile.modernFriendlyDebuffs = { mode = "all" }, { mode = "all" }
+  ns.SpellRules:Rebuild(profile)
+  for _, section in ipairs(sections) do
+    local flag = section.key:gsub("Limit$", "Unlimited")
+    local row = options.args.display.args[section.name].args.show
+    local toggle, range = row.args[flag], row.args[section.key]
+    local path = { "display", section.name, "show", flag }
+    assert(toggle.type == "toggle" and toggle.name == "Unlimited" and toggle.order > range.order)
+    assert(toggle.confirm(path, true) and not toggle.confirm(path, false), "Only enabling requires acknowledgment")
+    assert(toggle.confirmText:find("may impact performance", 1, true))
+    assert(not options.get(path) and not range.disabled(), "Opening the control does not enable Unlimited")
+    local remembered = profile[section.key]
+    options.set(path, true)
+    assert(range.disabled(), "Confirmed Unlimited disables its slider")
+    local friendly = section.name:find("friendly", 1, true) == 1
+    local helpful = section.name:find("Buffs", 1, true) ~= nil
+    for _, group in ipairs(ns.ModernRules:Build(profile, friendly)) do
+      local sameType = (group.filter:sub(1, 7) == "HELPFUL") == helpful
+      if sameType then
+        H.equal(group.maxFrameCount, math.huge, "Unlimited reaches the native group")
+      end
+    end
+    H.equal(profile[section.key], remembered, "Unlimited retains the bounded value")
+    options.set(path, false)
+    assert(not range.disabled() and profile[section.key] == remembered)
+  end
+  for _, section in ipairs(sections) do
+    local flag = section.key:gsub("Limit$", "Unlimited")
+    options.set({ "display", section.name, "show", flag }, true)
+  end
+  ns.Database:Save()
+  local restored = H.environment(interface, H.copy(state.env.flyPlateBuffsFixedDB))
+  H.loadAddon(restored)
+  for _, section in ipairs(sections) do
+    local flag = section.key:gsub("Limit$", "Unlimited")
+    assert(restored.ns.db.profile[flag] and restored.ns.db.profile[section.key] == section.default)
+  end
+end
+print("Unlimited third-column controls, acknowledgment, independent native caps and persistence pass.")

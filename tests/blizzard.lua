@@ -58,13 +58,36 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   end
   fresh.secret = true
   for _, control in ipairs(controls) do
-    H.equal(not not control.disabled(), fresh.ns.Client.modern, "CVar controls retain the root aura restriction")
+    assert(not control.disabled(), "aura secrecy does not block writable CVar controls")
   end
   fresh.secret, fresh.combat = false, true
   for _, control in ipairs(controls) do
     assert(control.disabled(), "CVar controls stay locked in combat on every client")
   end
   fresh.combat = false
+  for _, flag in ipairs({ "secure", "readOnly" }) do
+    fresh.cvarFlags.nameplateMaxDistance = { [flag] = true }
+    assert(blizzard.distance.args.nameplateMaxDistance.disabled(), "The actual CVar flag disables its setter")
+    local before = fresh.cvars.nameplateMaxDistance
+    fresh.ns.Blizzard:SetCVar("nameplateMaxDistance", 60)
+    H.equal(fresh.cvars.nameplateMaxDistance, before, "The owning writer enforces the same native restriction")
+  end
+  fresh.cvarFlags.nameplateMaxDistance = nil
+  assert(not blizzard.distance.args.nameplateMaxDistance.disabled())
+  for _, flag in ipairs({ "secure", "readOnly" }) do
+    fresh.cvarFlags.nameplateOtherBottomInset = { [flag] = true }
+    assert(blizzard.nameplateInset.disabled(), "Both inset targets must be writable")
+    local top, bottom = fresh.cvars.nameplateOtherTopInset, fresh.cvars.nameplateOtherBottomInset
+    blizzard.nameplateInset.set(nil, true)
+    H.equal(fresh.cvars.nameplateOtherTopInset, top, "A blocked pair does not partially change its first target")
+    H.equal(fresh.cvars.nameplateOtherBottomInset, bottom)
+    H.equal(fresh.ns.db.profile.nameplateInset, nil, "A rejected pair does not record a misleading preference")
+    fresh.ns.db.profile.nameplateInset = true
+    fresh.ns.Blizzard:Apply(fresh.ns.db.profile)
+    H.equal(fresh.cvars.nameplateOtherTopInset, top, "Saved profile application enforces the same pair boundary")
+    fresh.ns.db.profile.nameplateInset = nil
+  end
+  fresh.cvarFlags.nameplateOtherBottomInset = nil
   fresh.cvars.nameplateMaxDistance = nil
   assert(blizzard.distance.args.nameplateMaxDistance.disabled(), "unavailable CVars remain disabled")
 end
@@ -131,7 +154,11 @@ for _, interface in ipairs({ 120100, 16001 }) do
   assert(addon.db.profile.blizzardAuras == nil, "deferred hiding does not capture a baseline yet")
   restricted:addPlate("nameplate1")
   event(nil, "PLAYER_REGEN_ENABLED")
-  H.equal(restricted.cvars.nameplateEnemyNpcAuraDisplay, "1", "combat end alone does not hide native auras")
+  H.equal(
+    restricted.cvars.nameplateEnemyNpcAuraDisplay,
+    "1",
+    "native icons remain until the replacement runtime has initialized"
+  )
   restricted.secret = false
   event(
     nil,
@@ -206,3 +233,32 @@ for _, interface in ipairs({ 11509, 20506, 50504 }) do
   assert(not name.shown)
 end
 print("Classic missing-name repair retains selection and tap colors")
+
+for _, interface in ipairs({ 120105, 16001 }) do
+  local current, addon = create(interface)
+  local profile = addon.db.profile
+  current.secret = true
+  local options = current.registry:GetOptionsTable("flyPlateBuffsFixed")("dialog", "Test-1.0")
+  local actions = options.args.blizzard.args.auraActions.args
+  assert(not actions.hideRow.args.hide.disabled(), "Writable aura CVars stay available outside combat in PvP")
+  addon.Blizzard:HideAuras(profile)
+  H.equal(
+    current.cvars.nameplateEnemyNpcAuraDisplay,
+    "0",
+    "An initialized replacement permits the requested native-icon hide"
+  )
+  current.cvarFlags.nameplateEnemyNpcAuraDisplay = { readOnly = true }
+  assert(actions.restoreRow.args.restore.disabled(), "Restore checks its actual saved targets")
+  addon.Blizzard:RestoreAuras(profile)
+  assert(
+    profile.hideBlizzardAuras and profile.blizzardAuras,
+    "Blocked restoration preserves the preference and saved original values"
+  )
+  profile.hideBlizzardAuras = false
+  addon.Blizzard:Apply(profile)
+  assert(profile.blizzardAuras and current.cvars.nameplateEnemyNpcAuraDisplay == "0")
+  current.cvarFlags.nameplateEnemyNpcAuraDisplay = nil
+  addon.Blizzard:Apply(profile)
+  H.equal(current.cvars.nameplateEnemyNpcAuraDisplay, "1", "A later writable apply restores the retained baseline")
+end
+print("Per-CVar restrictions, protected backend writes, PvP-safe actions and retained restoration values pass.")

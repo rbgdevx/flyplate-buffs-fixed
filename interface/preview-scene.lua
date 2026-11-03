@@ -7,6 +7,7 @@ local CreateFrame = CreateFrame
 local GameTooltip = GameTooltip
 local GenerateClosure = GenerateClosure
 local GetTime = GetTime
+local mhuge = math.huge
 local mmax = math.max
 local mmin = math.min
 local tconcat = table.concat
@@ -173,6 +174,25 @@ local function compare(profile, a, b)
   return profile.modernSortReverse and left > right or not profile.modernSortReverse and left < right
 end
 
+local function sampleGroup(profile, entry, exact, groups, indexed)
+  local style = entry.style
+  local key = tconcat({ style.scale, style.durationSize, style.stackSize, tostring(entry.my), entry.type }, ":")
+  local group = indexed[key]
+  if not group then
+    local prefix = entry.type == "HELPFUL" and "enemyBuff" or "enemyDebuff"
+    group = {
+      records = {},
+      mine = entry.my,
+      style = style,
+      exact = exact,
+      order = #groups + 1,
+      maximum = exact and mhuge or profile[prefix .. "Unlimited"] and mhuge or profile[prefix .. "Limit"],
+    }
+    groups[#groups + 1], indexed[key] = group, group
+  end
+  return group
+end
+
 local function buildGroups(profile, selected, more)
   local rule = selected and not profile.ignoredDefaultSpells[selected] and profile.Spells[selected]
   local records = {}
@@ -200,13 +220,7 @@ local function buildGroups(profile, selected, more)
   end
   local groups, indexed = {}, {}
   for _, entry in ipairs(records) do
-    local style = entry.style
-    local key = tconcat({ style.scale, style.durationSize, style.stackSize, tostring(entry.my) }, ":")
-    local group = indexed[key]
-    if not group then
-      group = { records = {}, mine = entry.my, style = style, exact = rule ~= nil, order = #groups + 1 }
-      groups[#groups + 1], indexed[key] = group, group
-    end
+    local group = sampleGroup(profile, entry, rule ~= nil, groups, indexed)
     group.records[#group.records + 1] = entry
   end
   ModernRules:SortGroups(groups, profile.modernGroupOrder)
@@ -268,7 +282,7 @@ function PreviewScene:Refresh(scene, profile, selected, more, animate)
   local count, flowGroups = 0, {}
   for _, group in ipairs(buildGroups(profile, selected, more)) do
     local elements = {}
-    local limit = Client.modern and #group.records or profile.buffPerLine * profile.numLines
+    local limit = Client.modern and group.maximum or profile.buffPerLine * profile.numLines
     for index = 1, mmin(#group.records, limit) do
       count = count + 1
       local button = scene.buttons[count] or createButton(scene)

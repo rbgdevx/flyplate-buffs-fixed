@@ -1,14 +1,15 @@
 local _, fPB = ...
 
 local ipairs = ipairs
+local pairs = pairs
 local GenerateClosure = GenerateClosure
+local InCombatLockdown = InCombatLockdown
 
 local Client = fPB.Client
 local Controls = fPB.Controls
 local Defaults = fPB.Defaults
 local L = fPB.L
 local Options = fPB.Options
-local Restrictions = fPB.Restrictions
 
 local DisplayOptions = {}
 fPB.DisplayOptions = DisplayOptions
@@ -49,13 +50,42 @@ end
 
 local function categoryDisabled(key)
   local settings = fPB.db.profile[key]
-  return Restrictions:Active() or not settings or settings.mode ~= "categories"
+  return InCombatLockdown() or not settings or settings.mode ~= "categories"
 end
 
-local function groupLimit()
+local function limitDisabled(prefix)
+  return InCombatLockdown() or fPB.db.profile[prefix .. "Unlimited"]
+end
+
+local function confirmUnlimited(_, value)
+  return value
+end
+
+local function unlimitedToggle()
+  local toggle = Controls:Toggle("Unlimited", 4)
+  toggle.confirm = confirmUnlimited
+  toggle.confirmText = L["Unlimited icons may impact performance. Continue?"]
+  return toggle
+end
+
+local function groupLimit(prefix)
   local limit = Controls:Range("Maximum icons per group", 3, 1, 10)
   limit.desc = L["Each group can display this many icons. Multiple groups can show more icons above one nameplate."]
+  limit.disabled = GenerateClosure(limitDisabled, prefix)
   return limit
+end
+
+local function limitControls(key, show, prefix)
+  local args = {
+    [key] = show,
+    [prefix .. "Limit"] = groupLimit(prefix),
+    [prefix .. "Unlimited"] = unlimitedToggle(),
+  }
+  for _, control in pairs(args) do
+    control.width = "relative"
+    control.relWidth = 1 / 3
+  end
+  return Controls:Group("", 2, args)
 end
 
 local function broadMode(key, helpful)
@@ -80,10 +110,10 @@ local function broadCategory(key, category, order)
   return toggle
 end
 
-local function broadSection(key, title, order, helpful, limitKey)
+local function broadSection(key, title, order, helpful, prefix)
   local args = {
     note = Controls:Description("Blizzard supports categories here, not individual spell rules.", 1),
-    show = Controls:Row(2, { mode = broadMode(key, helpful), [limitKey] = groupLimit() }),
+    show = limitControls("mode", broadMode(key, helpful), prefix),
   }
   local categoryOrder = 3
   for _, category in ipairs(categories) do
@@ -117,13 +147,13 @@ local function spellCategory(key, category, order)
   return toggle
 end
 
-local function spellSection(key, title, order, limitKey)
+local function spellSection(key, title, order, prefix)
   local show = Controls:Select("Show", 2, modes)
   show.width = "double"
   local categoryKey = key == "showDebuffs" and "enemyDebuffCategories" or "friendlyBuffCategories"
   local args = {
     note = Controls:Description("Choose a starting set, then customize individual spells in Spells.", 1),
-    show = Controls:Row(2, { [key] = show, [limitKey] = groupLimit() }),
+    show = limitControls(key, show, prefix),
     showSpacing = Controls:Description("", 2.5),
     categoriesNote = Controls:Description(
       "Uncheck a category to hide matching auras that aren't in your spell list.",
@@ -180,10 +210,10 @@ function DisplayOptions:Build()
     }),
   }
   if Client.modern then
-    args.enemyDebuffs = spellSection("showDebuffs", "Enemy debuffs", 1, "enemyDebuffLimit")
-    args.enemyBuffs = broadSection("modernEnemyBuffs", "Enemy buffs", 2, true, "enemyBuffLimit")
-    args.friendlyDebuffs = broadSection("modernFriendlyDebuffs", "Friendly debuffs", 3, false, "friendlyDebuffLimit")
-    args.friendlyBuffs = spellSection("showBuffs", "Friendly buffs", 4, "friendlyBuffLimit")
+    args.enemyDebuffs = spellSection("showDebuffs", "Enemy debuffs", 1, "enemyDebuff")
+    args.enemyBuffs = broadSection("modernEnemyBuffs", "Enemy buffs", 2, true, "enemyBuff")
+    args.friendlyDebuffs = broadSection("modernFriendlyDebuffs", "Friendly debuffs", 3, false, "friendlyDebuff")
+    args.friendlyBuffs = spellSection("showBuffs", "Friendly buffs", 4, "friendlyBuff")
   else
     args.debuffsRow = Controls:Row(1, { showDebuffs = Controls:Select("Show debuffs", 1, modes) })
     args.buffsRow = Controls:Row(2, { showBuffs = Controls:Select("Show buffs", 1, modes) })
