@@ -22,7 +22,8 @@ function Helpers.environment(interface, saved)
   local env = setmetatable({}, { __index = _G })
   env._G = env
   env.unpack = table.unpack
-  local state = { frames = {}, plates = {}, auras = {}, cvars = {}, time = 100, combat = false, secret = false }
+  local state =
+    { frames = {}, plates = {}, auras = {}, cvars = {}, time = 100, combat = false, secret = false, loggedIn = true }
   local ns = {}
   local methods = {}
   local function frame(name, parent)
@@ -105,6 +106,12 @@ function Helpers.environment(interface, saved)
   function methods:IsShown()
     return self.visible
   end
+  function methods:IsVisible()
+    return self.visible and (not self.parent or self.parent:IsVisible())
+  end
+  function methods:SetFlattensRenderLayers(value)
+    self.flatten = value
+  end
   function methods:IsForbidden()
     return self.forbidden or false
   end
@@ -176,6 +183,12 @@ function Helpers.environment(interface, saved)
   function methods:SetEnabled(enabled)
     self.enabled = enabled
   end
+  function methods:IsEnabled()
+    return self.enabled == true
+  end
+  function methods:SetOnUpdateMode(mode)
+    self.onUpdateMode = mode
+  end
   function methods:SetUnit(unit)
     self.unit = unit
   end
@@ -245,6 +258,16 @@ function Helpers.environment(interface, saved)
   env.WOW_PROJECT_MAINLINE = 1
   env.WOW_PROJECT_CAMELOT = interface == 16001 and 18 or nil
   env.WOW_PROJECT_ID = ({ [11509] = 2, [20506] = 5, [50504] = 19, [16001] = 18 })[interface] or 1
+  if env.WOW_PROJECT_ID == env.WOW_PROJECT_MAINLINE or interface == 16001 then
+    env.table = Helpers.copy(table)
+    env.table.keys = function(source)
+      local keys = {}
+      for key in pairs(source) do
+        keys[#keys + 1] = key
+      end
+      return keys
+    end
+  end
   env.GetBuildInfo = function()
     return "test", "1", "date", interface
   end
@@ -286,6 +309,10 @@ function Helpers.environment(interface, saved)
   }
   env.GetTime = function()
     return state.time
+  end
+  env.GetTimePreciseSec = env.GetTime
+  env.IsLoggedIn = function()
+    return state.loggedIn
   end
   env.InCombatLockdown = function()
     return state.combat
@@ -380,12 +407,14 @@ function Helpers.environment(interface, saved)
   end
   env.SlashCmdList = {}
   env.Enum = {
+    OnUpdateMode = { RunOnce = 3 },
     AddOnRestrictionState = { Inactive = 0, Activating = 1, Active = 2 },
     AddOnRestrictionType = { Combat = 0, Encounter = 1, ChallengeMode = 2, PvPMatch = 3 },
     GameRule = {},
     TooltipDataType = { Spell = 1 },
     DurationTextBindingProperty = { RemainingPercent = 1 },
     CustomAuraButtonDispelTypeTextureStyle = { PreserveAsset = 1 },
+    LuaCurveType = { Step = 0 },
   }
   env.C_GameRules = {
     IsGameRuleActive = function()
@@ -400,16 +429,38 @@ function Helpers.environment(interface, saved)
   env.AuraContainerSortDirection = { Normal = 0, Reverse = 1 }
   env.AnchorUtil = { FlowDirection = { Right = 1, Up = 2 } }
   env.CreateColor = function(...)
-    return { ... }
+    local color = { ... }
+    function color:GetRGBA()
+      return table.unpack(self, 1, 4)
+    end
+    return color
   end
+  env.AuraUtil = {
+    GetAuraBorderColor = function(kind)
+      return env.CreateColor(kind == "Bleed" and 0.6 or 0.8, 0, 0, 1)
+    end,
+  }
   env.C_CurveUtil = {
     CreateColorCurve = function()
-      return { AddPoint = function() end }
+      state.colorCurves = (state.colorCurves or 0) + 1
+      local curve = { points = {} }
+      function curve:AddPoint(x, color)
+        self.points[x] = color
+      end
+      function curve:SetType(kind)
+        self.kind = kind
+      end
+      return curve
     end,
   }
   env.C_StringUtil = {
     CreateNumericRuleFormatter = function()
-      return { AddBreakpoint = function() end }
+      state.formatters = (state.formatters or 0) + 1
+      local formatter = { breakpoints = {} }
+      function formatter:AddBreakpoint(point)
+        self.breakpoints[#self.breakpoints + 1] = point
+      end
+      return formatter
     end,
   }
   env.C_Secrets = interface >= 120000 or interface == 16001 and {} or nil
@@ -460,7 +511,12 @@ function Helpers.environment(interface, saved)
       return id
     end,
   }
+  state.cvarFlags = {}
   env.C_CVar = {
+    GetCVarInfo = function(key)
+      local flags = state.cvarFlags[key] or {}
+      return state.cvars[key], state.cvars[key], false, false, false, flags.secure or false, flags.readOnly or false
+    end,
     GetCVar = function(key)
       return state.cvars[key]
     end,
@@ -539,6 +595,16 @@ function Helpers.environment(interface, saved)
     widget.frame = frame()
     widget.content = frame()
     return widget
+  end
+  function state:tick(delta)
+    self.time = self.time + (delta or 0)
+    local count = #self.created
+    for index = 1, count do
+      local object = self.created[index]
+      if object.scripts.OnUpdate and object:IsVisible() then
+        object.scripts.OnUpdate(object, delta or 0)
+      end
+    end
   end
   state.load, state.env, state.ns, state.registry = load, env, ns, registry
   function state:addPlate(unit)

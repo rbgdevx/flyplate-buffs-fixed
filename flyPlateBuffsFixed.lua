@@ -33,7 +33,7 @@ local function profileChanged()
 end
 
 local function mediaChanged()
-  Settings:Apply()
+  Settings:Apply(true)
   Options:Refresh()
 end
 
@@ -53,6 +53,7 @@ local function initialize()
   initialized = true
   profileChanged()
   _G.SLASH_FLYPLATEBUFFSFIXED1, _G.SLASH_FLYPLATEBUFFSFIXED2 = "/fpb", "/pb"
+  _G.SLASH_FLYPLATEBUFFSFIXED3 = "/fpbf"
   SlashCmdList.FLYPLATEBUFFSFIXED = slash
   for _, event in ipairs({
     "PLAYER_ENTERING_WORLD",
@@ -90,6 +91,7 @@ local function onEvent(_, event, unit, update)
         Settings:Apply()
       end
       Blizzard:Apply(fPB.db.profile)
+      Runtime:Prepare()
     end
     Options:Refresh()
   elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_ENTERING_WORLD" then
@@ -97,11 +99,12 @@ local function onEvent(_, event, unit, update)
       Settings:Apply()
     elseif Settings.ready then
       Runtime:Scan()
-      Runtime:RefreshUnits()
     end
     Blizzard:Apply(fPB.db.profile)
+    Options:UpdateCombatState()
     Options:Refresh()
   elseif event == "PLAYER_REGEN_DISABLED" then
+    Options:UpdateCombatState()
     if Settings.ready then
       Runtime:RefreshUnits()
     end

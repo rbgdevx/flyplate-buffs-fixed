@@ -60,7 +60,7 @@ function Units:IsAllowed(unit, profile)
   if UnitReaction("player", unit) == 4 then
     return profile.showOnNeutral
   elseif Units:IsFriendly(unit) then
-    return profile.showOnFriend
+    return profile.showOnFriend, true
   end
-  return profile.showOnEnemy
+  return profile.showOnEnemy, false
 end

@@ -344,6 +344,17 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     return buttons
   end
   H.equal(#visibleButtons(), 6, "general preview starts with six samples")
+  if not ns.Client.modern then
+    local profile = ns.db.profile
+    local button = visibleButtons()[1]
+    local width = profile.baseWidth
+    local previous = button:GetWidth()
+    profile.baseWidth = width + 7
+    ns.Preview:Refresh()
+    H.equal(button:GetWidth(), previous * profile.baseWidth / width, "mutable preview settings invalidate appearance")
+    profile.baseWidth = width
+    ns.Preview:Refresh()
+  end
   if ns.Client.modern then
     local profile = ns.db.profile
     local width, gap, count = profile.baseWidth, profile.xInterval, profile.buffPerLine
@@ -384,6 +395,26 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
   counts = sampleCounts()
   for id in pairs(expected) do
     H.equal(counts[id], 2, "Show more uses the same paired spells as NPA")
+  end
+  if ns.Client.modern then
+    local profile = ns.db.profile
+    local debuffs, buffs = profile.enemyDebuffLimit, profile.enemyBuffLimit
+    profile.enemyDebuffLimit, profile.enemyBuffLimit = 1, 1
+    ns.Preview:Refresh()
+    H.equal(#visibleButtons(), 4, "The enemy example limits each aura-type and ownership group")
+    profile.enemyDebuffUnlimited = true
+    ns.Preview:Refresh()
+    H.equal(#visibleButtons(), 10, "Unlimited debuffs leave the buff groups capped")
+    profile.enemyBuffUnlimited = true
+    ns.Preview:Refresh()
+    H.equal(#visibleButtons(), 12, "Unlimited preview retains all sample icons")
+    profile.enemyDebuffUnlimited, profile.enemyBuffUnlimited = false, false
+    profile.friendlyDebuffUnlimited, profile.friendlyBuffUnlimited = true, true
+    ns.Preview:Refresh()
+    H.equal(#visibleButtons(), 4, "Friendly limits do not change the enemy example")
+    profile.friendlyDebuffUnlimited, profile.friendlyBuffUnlimited = false, false
+    profile.enemyDebuffLimit, profile.enemyBuffLimit = debuffs, buffs
+    ns.Preview:Refresh()
   end
   ns.SpellRules:Add(ns.db.profile, "589")
   showPage("spells", 589)

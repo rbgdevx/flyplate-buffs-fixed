@@ -35,15 +35,16 @@ globals = {
 
 -- Blizzard client API (and optional deps) the addon READS.
 read_globals = {
-  "C_AddOns",
+  table = { fields = { keys = {} } },
+  "C_AddOns", "GetTimePreciseSec",
   "GetCursorPosition", "C_Timer", "NamePlateEnemyFrameOptions", "NamePlateSetupOptions",
   "RegionalUniqueNamesEnabled", "UnitNameUnmodified", "strlenutf8",
-  "CopyTable", "C_CVar", "GetBuildInfo", "GetRealmName", "C_Secrets", "UnitCanAttack", "UnitCanAssist", "UnitReaction", "C_Intl", "GenerateClosure", "AuraContainerSortDirection", "AuraContainerSortMethod", "tCompare", "AnchorUtil", "CreateColor", "C_CurveUtil", "C_StringUtil",
+  "AuraUtil", "CopyTable", "C_CVar", "GetBuildInfo", "GetRealmName", "C_Secrets", "UnitCanAttack", "UnitCanAssist", "UnitReaction", "C_Intl", "GenerateClosure", "AuraContainerSortDirection", "AuraContainerSortMethod", "tCompare", "AnchorUtil", "CreateColor", "C_CurveUtil", "C_StringUtil",
   "Clamp", "C_NamePlate", "C_Spell", "C_UnitAuras", "CompactUnitFrame_IsOnThreatListWithPlayer",
   "CompactUnitFrame_IsTapDenied", "CompactUnitFrame_UpdateName", "CreateFrame",
   "DEFAULT_CHAT_FRAME", "DISABLE", "ElvUI", "Enum", "GameTooltip", "GetCVar", "GetCVarDefault",
   "GetLocale", "GetNamePlateForUnit", "GetNamePlates", "GetSpellInfo", "GetSpellTexture",
-  "GetTime", "GetUnitName", "InCombatLockdown", "IsInInstance", "Item", "LibStub",
+  "GetTime", "GetUnitName", "InCombatLockdown", "IsInInstance", "IsLoggedIn", "Item", "LibStub",
   "Masque", "ReloadUI", "SetCVar", "Settings", "TooltipDataProcessor", "UIParent",
   "UnitAffectingCombat", "UnitAura", "UnitBuff", "UnitDebuff", "UnitIsEnemy",
   "UnitIsFriend", "UnitIsPlayer", "UnitIsUnit", "UnitName", "UnitPlayerControlled",

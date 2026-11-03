@@ -1,6 +1,6 @@
 ## Interface: 120105, 16001, 50504, 20506, 11509
 ## Title: flyPlateBuffsFixed
-## Version: 12.1.5.1
+## Version: 12.1.5.2
 ## Author: RBGDEV
 ## Notes: Shows buffs/debuffs on nameplates
 ## SavedVariables: flyPlateBuffsFixedDB
@@ -42,6 +42,8 @@ spells/rules.lua
 spells/search.lua
 
 interface/fonts.lua
+interface/icon-timers.lua
+interface/icon-style.lua
 interface/icons.lua
 interface/layout.lua
 

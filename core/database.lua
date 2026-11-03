@@ -14,7 +14,7 @@ local UnitNameUnmodified = UnitNameUnmodified
 local _G = _G
 local sfind = string.find
 local tsort = table.sort
-local GetSpellInfo = C_Spell.GetSpellInfo
+local GetSpellName = C_Spell.GetSpellName
 
 local defaultLargeSpells = fPB.defaultLargeSpells
 local defaultMediumSpells = fPB.defaultMediumSpells
@@ -75,9 +75,9 @@ local function defaultNames()
   local names = {}
   for _, ids in ipairs({ defaultLargeSpells, defaultMediumSpells }) do
     for _, id in ipairs(ids) do
-      local info = GetSpellInfo(id)
-      if info then
-        names[info.name] = names[info.name] or id
+      local name = GetSpellName(id)
+      if name then
+        names[name] = names[name] or id
       end
     end
   end
@@ -96,8 +96,7 @@ local function migrateProfile(profile, names)
       end
     end
     for id, move in pairs(moves) do
-      local info = GetSpellInfo(id)
-      move.rule.name = info and info.name or move.rule.name or move.key
+      move.rule.name = GetSpellName(id) or move.rule.name or move.key
       profile.Spells[id], profile.Spells[move.key] = move.rule, nil
     end
   end

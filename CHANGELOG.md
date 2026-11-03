@@ -1,5 +1,12 @@
 # flyPlateBuffsFixed
 
+## [v12.1.5.2](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.2) (2026-11-03)
+
+- Improving performance in large fights
+- Adding icon limits with an unlimited option
+- Fixing settings from not showing up in pvp instances
+- Adding /fpbf command
+
 ## [v12.1.5.1](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.1) (2026-10-16)
 
 - Fixing classic era bugs

@@ -2,7 +2,6 @@ local _, fPB = ...
 
 local tonumber = tonumber
 local GenerateClosure = GenerateClosure
-local InCombatLockdown = InCombatLockdown
 local GetCVar = C_CVar.GetCVar
 
 local Blizzard = fPB.Blizzard
@@ -10,13 +9,12 @@ local Client = fPB.Client
 local Controls = fPB.Controls
 local L = fPB.L
 local Options = fPB.Options
-local Restrictions = fPB.Restrictions
 
 local BlizzardOptions = {}
 fPB.BlizzardOptions = BlizzardOptions
 
 local function unavailable(cvar)
-  return InCombatLockdown() or Restrictions:Active() or GetCVar(cvar) == nil
+  return not Blizzard:CanSetCVar(cvar)
 end
 
 local function friendlyDebuffsDisabled()
@@ -39,20 +37,19 @@ local function resetDistance()
   Options:Refresh()
 end
 
+local function insetUnavailable()
+  return not Blizzard:CanSetInsets()
+end
+
 local function getInset()
   return GetCVar("nameplateOtherTopInset") == "-1" and GetCVar("nameplateOtherBottomInset") == "-1"
 end
 
 local function setInset(_, value)
-  fPB.db.profile.nameplateInset = value
-  if value then
-    Blizzard:SetCVar("nameplateOtherTopInset", -1)
-    Blizzard:SetCVar("nameplateOtherBottomInset", -1)
-  else
-    Blizzard:ResetCVar("nameplateOtherTopInset")
-    Blizzard:ResetCVar("nameplateOtherBottomInset")
+  if Blizzard:SetInsets(value) then
+    fPB.db.profile.nameplateInset = value
+    Options:Refresh()
   end
-  Options:Refresh()
 end
 
 local function getCVarFlag(cvar, enabled)
@@ -63,6 +60,14 @@ local function setCVarFlag(key, cvar, enabled, disabled, _, value)
   fPB.db.profile[key] = value
   Blizzard:SetCVar(cvar, value and enabled or disabled)
   Options:Refresh()
+end
+
+local function hideUnavailable()
+  return not Blizzard:CanHideAuras()
+end
+
+local function restoreUnavailable()
+  return not Blizzard:CanRestoreAuras(fPB.db.profile)
 end
 
 local function hideAuras()
@@ -104,7 +109,7 @@ function BlizzardOptions:Build()
       width = "full",
       get = getInset,
       set = setInset,
-      disabled = GenerateClosure(unavailable, "nameplateOtherTopInset"),
+      disabled = insetUnavailable,
     },
     disableFriendlyDebuffs = {
       type = "toggle",
@@ -134,6 +139,7 @@ function BlizzardOptions:Build()
           order = 1,
           width = Controls:Width(L["Hide Blizzard icons"]),
           func = hideAuras,
+          disabled = hideUnavailable,
         },
       }),
       restoreRow = Controls:Row(2, {
@@ -143,6 +149,7 @@ function BlizzardOptions:Build()
           order = 1,
           width = Controls:Width(L["Restore previous values"]),
           func = restoreAuras,
+          disabled = restoreUnavailable,
         },
       }),
     })

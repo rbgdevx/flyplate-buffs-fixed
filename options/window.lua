@@ -3,6 +3,7 @@ local addonName, fPB = ...
 local hooksecurefunc = hooksecurefunc
 local ipairs = ipairs
 local GenerateClosure = GenerateClosure
+local InCombatLockdown = InCombatLockdown
 local LibStub = LibStub
 local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 
@@ -12,13 +13,14 @@ local Options = fPB.Options
 local PositionOptions = fPB.PositionOptions
 local Preview = fPB.Preview
 local ProfileOptions = fPB.ProfileOptions
-local Restrictions = fPB.Restrictions
 local SortingOptions = fPB.SortingOptions
 local SpellOptions = fPB.SpellOptions
 local StyleOptions = fPB.StyleOptions
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+
+local reopenAfterCombat = false
 
 local function getValue(info)
   local key = info[#info]
@@ -63,7 +65,7 @@ local function build()
     childGroups = "tab",
     get = getValue,
     set = setValue,
-    disabled = GenerateClosure(Restrictions.Active, Restrictions),
+    disabled = InCombatLockdown,
     args = {
       preview = {
         type = "execute",
@@ -82,11 +84,28 @@ local function build()
   }
 end
 
+local function closeForCombat()
+  local window = AceConfigDialog.OpenFrames[addonName]
+  if window then
+    reopenAfterCombat = true
+    window:Hide()
+  end
+end
+
+local function windowOpened(_, appName)
+  if appName == addonName and InCombatLockdown() then
+    closeForCombat()
+  end
+end
+
 local function groupShown(_, appName, options, container, _, path)
   if appName ~= addonName then
     return
   end
   if #path == 0 then
+    if InCombatLockdown() then
+      return
+    end
     if AceConfigDialog.OpenFrames[addonName] == container then
       Preview:Attach(container)
       updatePreviewButton()
@@ -117,6 +136,9 @@ local function groupShown(_, appName, options, container, _, path)
 end
 
 function Options:TogglePreview()
+  if InCombatLockdown() then
+    return
+  end
   Preview:Toggle()
   updatePreviewButton()
 end
@@ -130,9 +152,13 @@ function Options:Initialize(callback)
   AceConfigDialog:AddToBlizOptions(addonName, addonName)
   -- AceConfig tree clicks have no option-table callback; observe the displayed group.
   hooksecurefunc(AceConfigDialog, "FeedGroup", groupShown)
+  hooksecurefunc(AceConfigDialog, "Open", windowOpened)
 end
 
 function Options:Open(page)
+  if InCombatLockdown() then
+    return
+  end
   AceConfigDialog:Open(addonName)
   if
     page == "display"
@@ -144,5 +170,14 @@ function Options:Open(page)
     or page == "profiles"
   then
     AceConfigDialog:SelectGroup(addonName, page)
+  end
+end
+
+function Options:UpdateCombatState()
+  if InCombatLockdown() then
+    closeForCombat()
+  elseif reopenAfterCombat then
+    reopenAfterCombat = false
+    Options:Open(Options.selectedPage)
   end
 end

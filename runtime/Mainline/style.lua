@@ -1,15 +1,9 @@
 local addonName, fPB = ...
 
-local ipairs = ipairs
-local pairs = pairs
 local unpack = unpack
-local CreateColor = CreateColor
-local CreateFrame = CreateFrame
-local Enum = Enum
-local CreateColorCurve = C_CurveUtil.CreateColorCurve
-local CreateNumericRuleFormatter = C_StringUtil.CreateNumericRuleFormatter
 
 local Fonts = fPB.Fonts
+local StyleRegions = fPB.StyleRegions
 
 local Style = {}
 fPB.Style = Style
@@ -26,17 +20,6 @@ local function texCoords(width, height, crop)
   end
 
   return 0, 1, 0, 1
-end
-
-local function durationFormatter(decimals)
-  local formatter = CreateNumericRuleFormatter()
-  formatter:AddBreakpoint({ threshold = 0, format = decimals and "%.1f" or "", step = decimals and 0.1 or nil })
-  formatter:AddBreakpoint({ threshold = decimals and 10 or 0.5, format = "%.0f", step = 1 })
-  formatter:AddBreakpoint({ threshold = 59.5, format = "%dm", components = { { div = 60, step = 1 } } })
-  formatter:AddBreakpoint({ threshold = 3570, format = "%dh", components = { { div = 3600, step = 1 } } })
-  formatter:AddBreakpoint({ threshold = 84600, format = "%dd", components = { { div = 86400, step = 1 } } })
-
-  return formatter
 end
 
 local function placeText(text, button, position, offsetX, offsetY)
@@ -56,94 +39,86 @@ local function placeText(text, button, position, offsetX, offsetY)
   end
 end
 
-local function createCooldown(button)
-  button.Cooldown = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
-  button.Cooldown:SetAllPoints()
-  button.Cooldown:SetDrawEdge(false)
-  button.Cooldown:SetReverse(true)
-  button.Cooldown:SetSwipeColor(0, 0, 0, 0.6)
-  button.Cooldown:SetHideCountdownNumbers(true)
+local function applyDurationBackground(background, style)
+  local outside = style.durationPosition == "BOTTOM" or style.durationPosition == "TOP"
+  background:SetColorTexture(unpack(style.durationBackgroundColor))
+  background:SetShown(style.duration and outside)
+  return background
 end
 
-local function createText(button)
-  button.TextLayer = CreateFrame("Frame", nil, button)
-  button.TextLayer:SetAllPoints()
-  button.TextLayer:SetFrameLevel(button.Cooldown:GetFrameLevel() + 1)
-
-  button.Duration = button.TextLayer:CreateFontString(nil, "OVERLAY")
-  button.Stacks = button.TextLayer:CreateFontString(nil, "OVERLAY")
-
-  button.DurationBackground = button.TextLayer:CreateTexture(nil, "BACKGROUND")
-  button.DurationBackground:SetAllPoints(button.Duration)
-
-  button.StackBackground = button.TextLayer:CreateTexture(nil, "BACKGROUND")
-  button.StackBackground:SetAllPoints(button.Stacks)
-  button.StackBackground:SetColorTexture(0, 0, 0, 0.75)
+local function applyDurationText(text, button, style)
+  text:SetTextColor(unpack(style.durationTextColor))
+  placeText(text, button, style.durationPosition, style.durationX, style.durationY)
+  text:SetShown(style.duration)
+  return text
 end
 
-local function createBorders(button)
-  button.Border = button:CreateTexture(nil, "OVERLAY")
-  button.Border:SetAllPoints()
+local function assembleDurationStyle(button, style)
+  if not button.Duration then
+    return
+  end
 
-  button.BuffBorder = button:CreateTexture(nil, "OVERLAY")
-  button.BuffBorder:SetAllPoints(button.Border)
+  applyDurationBackground(button.DurationBackground, style)
+  applyDurationText(button.Duration, button, style)
 end
 
-local function applyDuration(button, style)
-  local durationOutside = style.durationPosition == "BOTTOM" or style.durationPosition == "TOP"
-  button.DurationBackground:SetColorTexture(unpack(style.durationBackgroundColor))
-  button.DurationBackground:SetShown(style.duration and durationOutside)
-  button.Duration:SetTextColor(unpack(style.durationTextColor))
-  placeText(button.Duration, button, style.durationPosition, style.durationX, style.durationY)
-  button.Duration:SetShown(style.duration)
+local function applyStackText(text, button, style, group)
+  text:SetTextColor(unpack(style.stackColor))
+  placeText(text, button, style.stackPosition, style.stackX, style.stackY)
+  text:SetHeight(group.stackSize + 4)
+  text:SetShown(true)
+  return text
 end
 
-local function applyStacks(button, style, group)
-  local stackOutside = style.stackPosition == "BOTTOM" or style.stackPosition == "TOP"
-  button.StackBackground:SetShown(stackOutside)
-  button.Stacks:SetTextColor(unpack(style.stackColor))
-  placeText(button.Stacks, button, style.stackPosition, style.stackX, style.stackY)
-  button.Stacks:SetHeight(group.stackSize + 4)
-  button.Stacks:SetShown(true)
+local function assembleStackStyle(button, style, group)
+  local outside = style.stackPosition == "BOTTOM" or style.stackPosition == "TOP"
+  button.StackBackground:SetShown(outside)
+  applyStackText(button.Stacks, button, style, group)
 end
 
-local function applyCooldown(button, style)
+local function applyCooldownText(text, cooldown, style)
+  text:SetTextColor(unpack(style.cooldownTextColor))
+  text:ClearAllPoints()
+  text:SetPoint("CENTER", cooldown, "CENTER", style.cooldownX, style.cooldownY)
+  return text
+end
+
+local function assembleCooldownStyle(button, style)
+  if not button.Cooldown then
+    return
+  end
+
   button.Cooldown:SetDrawSwipe(style.swipe)
   button.Cooldown:SetHideCountdownNumbers(not style.cooldownNumbers)
   button.Cooldown:SetShown(style.swipe or style.cooldownNumbers)
-
-  local countdown = button.Cooldown:GetCountdownFontString()
-  countdown:SetTextColor(unpack(style.cooldownTextColor))
-  countdown:ClearAllPoints()
-  countdown:SetPoint("CENTER", button.Cooldown, "CENTER", style.cooldownX, style.cooldownY)
+  applyCooldownText(button.Cooldown:GetCountdownFontString(), button.Cooldown, style)
 end
 
-local function applyBorders(button, style)
-  for _, border in ipairs({ button.Border, button.BuffBorder }) do
-    border:Hide()
-    border:SetTexture(style.border == "square" and borderTexture or "Interface\\Buttons\\UI-Debuff-Overlays")
-    if style.border == "square" then
-      border:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    else
-      border:SetTexCoord(0.296875, 0.5703125, 0, 0.515625)
-    end
+local function applyBorderStyle(border, style)
+  if not border then
+    return
   end
+
+  if style.border == "none" then
+    border:Hide()
+  end
+  border:SetTexture(style.border == "square" and borderTexture or "Interface\\Buttons\\UI-Debuff-Overlays")
+  if style.border == "square" then
+    border:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  else
+    border:SetTexCoord(0.296875, 0.5703125, 0, 0.515625)
+  end
+  return border
 end
 
-local function bindDuration(button, style)
+local function bindDuration(button, style, resources)
   if style.duration then
-    local options = { textFormatter = durationFormatter(style.decimals) }
-    if style.durationColor then
-      local curve = CreateColorCurve()
-      curve:AddPoint(0, CreateColor(1, 0, 0))
-      curve:AddPoint(0.5, CreateColor(1, 1, 0))
-      curve:AddPoint(1, CreateColor(0, 1, 0))
-      options.textColor = { curve = curve, property = Enum.DurationTextBindingProperty.RemainingPercent }
-    end
-    button:SetDurationText(button.Duration, options)
+    button:SetDurationText(button.Duration, resources.duration)
   else
     button:ClearDurationText()
-    button.Duration:Hide()
+    if button.Duration then
+      button.Duration:Hide()
+    end
   end
 end
 
@@ -152,92 +127,68 @@ local function bindCooldown(button, style)
     button:SetDurationCooldown(button.Cooldown)
   else
     button:ClearDurationCooldown()
-    button.Cooldown:Hide()
+    if button.Cooldown then
+      button.Cooldown:Hide()
+    end
   end
 end
 
-local function harmfulColors(style, colors)
-  local harmful = {
-    showWhenHarmful = true,
-    showWithoutDispelType = true,
-    style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,
-  }
-  harmful.customDispelColorMap = {}
-  for _, key in ipairs({ "None", "Magic", "Curse", "Disease", "Poison", "Enrage" }) do
-    harmful.customDispelColorMap[key] = style.colorByDispel and (colors[key] or colors.None) or colors.None
-  end
-
-  return harmful
-end
-
-local function bindBorders(button, style)
+local function bindBorder(button, resources, helpful)
   button:ClearDispelTypeTextures()
-  if style.border == "none" then
-    return
+  if resources.borders then
+    button:AddDispelTypeTexture(button.Border, resources.borders[helpful and 2 or 1])
   end
-
-  local colors = {}
-  for key, rgb in pairs(style.colors) do
-    colors[key] = CreateColor(unpack(rgb))
-  end
-
-  button:AddDispelTypeTexture(button.Border, harmfulColors(style, colors))
-
-  local buffColors = {}
-  for _, key in ipairs({ "None", "Magic", "Curse", "Disease", "Poison", "Enrage" }) do
-    buffColors[key] = colors.Buff
-  end
-
-  button:AddDispelTypeTexture(button.BuffBorder, {
-    showWhenHarmful = false,
-    showWhenHelpful = true,
-    showWithoutDispelType = true,
-    style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,
-    customDispelColorMap = buffColors,
-  })
 end
 
-function Style:Create(button)
-  button.Icon = button:CreateTexture(nil, "ARTWORK")
-  button.Icon:SetAllPoints()
+local function bindElements(button)
+  button:SetIcon(button.Icon)
+  button:SetApplicationCount(button.Stacks, {})
+  button:SetMouseClickEnabled(false)
+  button:SetTooltipAnchorPoint("ANCHOR_RIGHT")
+end
 
-  createCooldown(button)
-  createText(button)
-  createBorders(button)
+function Style:Create(button, profile)
+  StyleRegions:Create(button, profile and profile.style or { duration = true, swipe = true, border = "square" })
 end
 
 function Style:ApplyFonts(button, profile, group)
   local style = profile.style
   local durationOutside = style.durationPosition == "BOTTOM" or style.durationPosition == "TOP"
   local stackOutside = style.stackPosition == "BOTTOM" or style.stackPosition == "TOP"
-  button.Duration:SetFont(Fonts:GetPath(style.durationFont), group.durationSize, durationOutside and "" or "OUTLINE")
+  if button.Duration then
+    button.Duration:SetFont(Fonts:GetPath(style.durationFont), group.durationSize, durationOutside and "" or "OUTLINE")
+  end
   button.Stacks:SetFont(Fonts:GetPath(style.stackFont), group.stackSize, stackOutside and "" or "OUTLINE")
-  button.Cooldown:GetCountdownFontString():SetFont(Fonts:GetPath(style.cooldownFont), style.cooldownSize, "OUTLINE")
+  if button.Cooldown then
+    button.Cooldown:GetCountdownFontString():SetFont(Fonts:GetPath(style.cooldownFont), style.cooldownSize, "OUTLINE")
+  end
 end
 
 function Style:ApplyAppearance(button, profile, group)
   local style = profile.style
+  StyleRegions:Ensure(button, style)
   button:SetSize(style.width * group.scale, style.height * group.scale)
   button.Icon:SetTexCoord(texCoords(style.width, style.height, style.crop))
   Style:ApplyFonts(button, profile, group)
 
-  applyDuration(button, style)
-  applyStacks(button, style, group)
-  applyCooldown(button, style)
-  applyBorders(button, style)
+  assembleDurationStyle(button, style)
+  assembleStackStyle(button, style, group)
+  assembleCooldownStyle(button, style)
+  applyBorderStyle(button.Border, style)
 end
 
-function Style:Apply(button, profile, group)
+function Style:Apply(button, profile, group, resources, helpful)
   Style:ApplyAppearance(button, profile, group)
-  button:SetIcon(button.Icon)
-  button:SetMouseClickEnabled(false)
+  bindDuration(button, profile.style, resources)
+  bindCooldown(button, profile.style)
+  bindBorder(button, resources, helpful)
+
   button:SetMouseMotionEnabled(profile.tooltip)
   button:SetHideTooltipInCombat(not profile.tooltipInCombat)
-  button:SetTooltipAnchorPoint("ANCHOR_RIGHT")
+end
 
-  local style = profile.style
-  bindDuration(button, style)
-  button:SetApplicationCount(button.Stacks, {})
-  bindCooldown(button, style)
-  bindBorders(button, style)
+function Style:Initialize(button, profile, group, resources, helpful)
+  Style:Create(button, profile)
+  Style:Apply(button, profile, group, resources, helpful)
+  bindElements(button)
 end

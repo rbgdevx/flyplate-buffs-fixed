@@ -1,6 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
   <Script file="rules.lua"/>
+  <Script file="style-resources.lua"/>
+  <Script file="style-regions.lua"/>
   <Script file="style.lua"/>
+  <Script file="activation.lua"/>
   <Script file="container.lua"/>
+  <Script file="reserve.lua"/>
   <Script file="nameplates.lua"/>
 </Ui>
