@@ -216,22 +216,32 @@ local function buildGroups(profile, selected, more)
   return groups
 end
 
+local function applySampleBorder(border, profile, entry)
+  local color = entry.aura.isHelpful and profile.colorTypes.Buff
+    or (profile.colorizeBorder and profile.colorTypes[entry.sample.color])
+    or profile.colorTypes.none
+  border:SetVertexColor(unpack(color))
+  border:SetShown(profile.borderStyle ~= 3)
+  return border
+end
+
+local function applyModernSample(scene, button, entry)
+  local profile = scene.profile
+  Style:ApplyAppearance(button, scene.appearance, entry.style)
+  button.Icon:SetTexture(entry.aura.icon)
+  button.Stacks:SetText(entry.sample.stacks > 1 and entry.sample.stacks or "")
+  button.StackBackground:SetShown(entry.sample.stacks > 1 and profile.stackPosition ~= 1)
+  applySampleBorder(button.Border, profile, entry)
+end
+
 local function apply(scene, button, entry)
   local profile = scene.profile
   if Client.modern then
-    Style:ApplyAppearance(button, scene.appearance, entry.style)
-    button.Icon:SetTexture(entry.aura.icon)
-    button.Stacks:SetText(entry.sample.stacks > 1 and entry.sample.stacks or "")
-    button.StackBackground:SetShown(entry.sample.stacks > 1 and profile.stackPosition ~= 1)
-    local color = entry.aura.isHelpful and profile.colorTypes.Buff
-      or (profile.colorizeBorder and profile.colorTypes[entry.sample.color])
-      or profile.colorTypes.none
-    button.Border:SetVertexColor(unpack(color))
-    button.Border:SetShown(profile.borderStyle ~= 3)
+    applyModernSample(scene, button, entry)
   else
-    Icons:Apply(button, profile, scene.appearance.style, entry.style, entry.aura)
-    button:SetScript("OnUpdate", nil)
+    Icons:Apply(button, profile, scene.appearance.style, entry.style, entry.aura, true)
   end
+
   button.sample = entry.sample
   button.DurationHit:SetShown(profile.showDuration)
   button.StackHit:SetShown(entry.sample.stacks > 1)

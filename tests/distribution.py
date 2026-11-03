@@ -20,7 +20,7 @@ class DistributionTests(unittest.TestCase):
             staged = Path(temporary)
             distribution.stage(staged)
             files = {p.relative_to(staged).as_posix() for p in staged.rglob('*') if p.is_file()}
-            for excluded in ('scripts/', 'tests/', '.codex/', 'README', '.git/', 'libs/AceDB'):
+            for excluded in ('scripts/', 'tests/', 'diagnostics/', '.codex/', 'README', '.git/', 'libs/AceDB'):
                 self.assertFalse(any(name.startswith(excluded) for name in files), excluded)
             for required in ('LICENSE', 'libs/Ace3-LICENSE.txt', 'libs/SpellRankData/LICENSE.txt',
                              'libs/SpellRankData/Forever.lua', 'texture/border.tga'):

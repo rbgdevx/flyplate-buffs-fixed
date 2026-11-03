@@ -344,6 +344,17 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 16001 }) do
     return buttons
   end
   H.equal(#visibleButtons(), 6, "general preview starts with six samples")
+  if not ns.Client.modern then
+    local profile = ns.db.profile
+    local button = visibleButtons()[1]
+    local width = profile.baseWidth
+    local previous = button:GetWidth()
+    profile.baseWidth = width + 7
+    ns.Preview:Refresh()
+    H.equal(button:GetWidth(), previous * profile.baseWidth / width, "mutable preview settings invalidate appearance")
+    profile.baseWidth = width
+    ns.Preview:Refresh()
+  end
   if ns.Client.modern then
     local profile = ns.db.profile
     local width, gap, count = profile.baseWidth, profile.xInterval, profile.buffPerLine

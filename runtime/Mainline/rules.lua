@@ -5,7 +5,9 @@ local pairs = pairs
 local tostring = tostring
 local GenerateClosure = GenerateClosure
 local mhuge = math.huge
+local ssub = string.sub
 local tconcat = table.concat
+local tkeys = table.keys
 local tsort = table.sort
 
 local Appearance = fPB.Appearance
@@ -71,10 +73,7 @@ local function addExact(groups, profile, friendly)
   local filter = friendly and "HELPFUL" or "HARMFUL"
   local exclusions, styles = {}, {}
   local spells = SpellRules:Exact()
-  local ids = {}
-  for id in pairs(spells) do
-    ids[#ids + 1] = id
-  end
+  local ids = tkeys(spells)
   tsort(ids)
   for _, id in ipairs(ids) do
     local rule = spells[id]
@@ -128,6 +127,14 @@ local function addBroad(groups, profile, friendly)
   end
 end
 
+local function limitGroups(groups, profile, friendly)
+  local buffLimit = profile[friendly and "friendlyBuffLimit" or "enemyBuffLimit"]
+  local debuffLimit = profile[friendly and "friendlyDebuffLimit" or "enemyDebuffLimit"]
+  for _, group in ipairs(groups) do
+    group.maxFrameCount = ssub(group.filter, 1, 7) == "HELPFUL" and buffLimit or debuffLimit
+  end
+end
+
 local function compare(order, a, b)
   if order == "mine" and a.mine ~= b.mine then
     return a.mine
@@ -149,6 +156,7 @@ function ModernRules:Build(profile, friendly)
   local groups = {}
   addExact(groups, profile, friendly)
   addBroad(groups, profile, friendly)
+  limitGroups(groups, profile, friendly)
   ModernRules:SortGroups(groups, profile.modernGroupOrder)
   return groups
 end

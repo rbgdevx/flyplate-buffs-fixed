@@ -33,7 +33,7 @@ local function profileChanged()
 end
 
 local function mediaChanged()
-  Settings:Apply()
+  Settings:Apply(true)
   Options:Refresh()
 end
 
@@ -90,6 +90,7 @@ local function onEvent(_, event, unit, update)
         Settings:Apply()
       end
       Blizzard:Apply(fPB.db.profile)
+      Runtime:Prepare()
     end
     Options:Refresh()
   elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_ENTERING_WORLD" then
@@ -97,7 +98,6 @@ local function onEvent(_, event, unit, update)
       Settings:Apply()
     elseif Settings.ready then
       Runtime:Scan()
-      Runtime:RefreshUnits()
     end
     Blizzard:Apply(fPB.db.profile)
     Options:Refresh()

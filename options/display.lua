@@ -52,35 +52,43 @@ local function categoryDisabled(key)
   return Restrictions:Active() or not settings or settings.mode ~= "categories"
 end
 
-local function broadSection(key, title, order, helpful)
+local function groupLimit()
+  local limit = Controls:Range("Maximum icons per group", 3, 1, 10)
+  limit.desc = L["Each group can display this many icons. Multiple groups can show more icons above one nameplate."]
+  return limit
+end
+
+local function broadMode(key, helpful)
+  local mode = Controls:Select("Show", 2, {
+    inherit = L[helpful and "Use friendly buffs setting" or "Use enemy debuffs setting"],
+    all = L["All"],
+    mine = L["Only mine"],
+    categories = L["Selected categories"],
+    none = L["None"],
+  })
+  mode.width = "double"
+  mode.get = GenerateClosure(getBroad, key)
+  mode.set = GenerateClosure(setBroad, key)
+  return mode
+end
+
+local function broadCategory(key, category, order)
+  local toggle = Controls:Toggle(category[2], order)
+  toggle.get = GenerateClosure(getCategory, key, category[1])
+  toggle.set = GenerateClosure(setCategory, key, category[1])
+  toggle.disabled = GenerateClosure(categoryDisabled, key)
+  return toggle
+end
+
+local function broadSection(key, title, order, helpful, limitKey)
   local args = {
     note = Controls:Description("Blizzard supports categories here, not individual spell rules.", 1),
-    mode = {
-      type = "select",
-      name = L["Show"],
-      order = 2,
-      width = "double",
-      values = {
-        inherit = L[helpful and "Use friendly buffs setting" or "Use enemy debuffs setting"],
-        all = L["All"],
-        mine = L["Only mine"],
-        categories = L["Selected categories"],
-        none = L["None"],
-      },
-      get = GenerateClosure(getBroad, key),
-      set = GenerateClosure(setBroad, key),
-    },
+    show = Controls:Row(2, { mode = broadMode(key, helpful), [limitKey] = groupLimit() }),
   }
-  args.show = Controls:Row(2, { mode = args.mode })
-  args.mode = nil
   local categoryOrder = 3
   for _, category in ipairs(categories) do
     if category[3] == nil or category[3] == helpful then
-      local toggle = Controls:Toggle(category[2], categoryOrder)
-      toggle.get = GenerateClosure(getCategory, key, category[1])
-      toggle.set = GenerateClosure(setCategory, key, category[1])
-      toggle.disabled = GenerateClosure(categoryDisabled, key)
-      args[category[1]] = toggle
+      args[category[1]] = broadCategory(key, category, categoryOrder)
       categoryOrder = categoryOrder + 1
     end
   end
@@ -102,13 +110,20 @@ local function setSpellCategory(key, category, _, value)
   Options:Changed()
 end
 
-local function spellSection(key, title, order)
+local function spellCategory(key, category, order)
+  local toggle = Controls:Toggle(category[2], order)
+  toggle.get = GenerateClosure(getSpellCategory, key, category[1])
+  toggle.set = GenerateClosure(setSpellCategory, key, category[1])
+  return toggle
+end
+
+local function spellSection(key, title, order, limitKey)
   local show = Controls:Select("Show", 2, modes)
   show.width = "double"
   local categoryKey = key == "showDebuffs" and "enemyDebuffCategories" or "friendlyBuffCategories"
   local args = {
     note = Controls:Description("Choose a starting set, then customize individual spells in Spells.", 1),
-    show = Controls:Row(2, { [key] = show }),
+    show = Controls:Row(2, { [key] = show, [limitKey] = groupLimit() }),
     showSpacing = Controls:Description("", 2.5),
     categoriesNote = Controls:Description(
       "Uncheck a category to hide matching auras that aren't in your spell list.",
@@ -117,10 +132,7 @@ local function spellSection(key, title, order)
   }
   for index, category in ipairs(categories) do
     if Defaults.profile[categoryKey][category[1]] ~= nil then
-      local toggle = Controls:Toggle(category[2], index + 3)
-      toggle.get = GenerateClosure(getSpellCategory, categoryKey, category[1])
-      toggle.set = GenerateClosure(setSpellCategory, categoryKey, category[1])
-      args[category[1]] = toggle
+      args[category[1]] = spellCategory(categoryKey, category, index + 3)
     end
   end
   return {
@@ -143,6 +155,9 @@ function DisplayOptions:Build()
       tooltipInCombat = Controls:Toggle("Allow tooltips in combat", 3),
     }),
   }
+  general.settings.args.tooltipInCombat.disabled = function()
+    return not fPB.db.profile.showTooltip
+  end
   local args = {
     general = Controls:Group("General", 5, general),
     units = Controls:Group("Which nameplates?", 20, {
@@ -165,10 +180,10 @@ function DisplayOptions:Build()
     }),
   }
   if Client.modern then
-    args.enemyDebuffs = spellSection("showDebuffs", "Enemy debuffs", 1)
-    args.enemyBuffs = broadSection("modernEnemyBuffs", "Enemy buffs", 2, true)
-    args.friendlyDebuffs = broadSection("modernFriendlyDebuffs", "Friendly debuffs", 3, false)
-    args.friendlyBuffs = spellSection("showBuffs", "Friendly buffs", 4)
+    args.enemyDebuffs = spellSection("showDebuffs", "Enemy debuffs", 1, "enemyDebuffLimit")
+    args.enemyBuffs = broadSection("modernEnemyBuffs", "Enemy buffs", 2, true, "enemyBuffLimit")
+    args.friendlyDebuffs = broadSection("modernFriendlyDebuffs", "Friendly debuffs", 3, false, "friendlyDebuffLimit")
+    args.friendlyBuffs = spellSection("showBuffs", "Friendly buffs", 4, "friendlyBuffLimit")
   else
     args.debuffsRow = Controls:Row(1, { showDebuffs = Controls:Select("Show debuffs", 1, modes) })
     args.buffsRow = Controls:Row(2, { showBuffs = Controls:Select("Show buffs", 1, modes) })

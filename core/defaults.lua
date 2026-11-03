@@ -1,7 +1,7 @@
 local _, fPB = ...
 
 local ipairs = ipairs
-local GetSpellInfo = C_Spell.GetSpellInfo
+local GetSpellName = C_Spell.GetSpellName
 
 local defaultHiddenSpells = fPB.defaultHiddenSpells
 local defaultLargeSpells = fPB.defaultLargeSpells
@@ -12,6 +12,10 @@ local Defaults = {
     targetOnly = false,
     showDebuffs = 2,
     showBuffs = 3,
+    enemyDebuffLimit = 6,
+    enemyBuffLimit = 4,
+    friendlyDebuffLimit = 6,
+    friendlyBuffLimit = 4,
     showTooltip = false,
     tooltipInCombat = true,
     enemyDebuffCategories = { crowdControl = true, dispellable = true },
@@ -96,10 +100,10 @@ local Defaults = {
 
 local function addDefaults(ids, scale, size, show)
   for _, id in ipairs(ids) do
-    local info = GetSpellInfo(id)
-    if info then
+    local name = GetSpellName(id)
+    if name then
       Defaults.profile.Spells[id] = {
-        name = info.name,
+        name = name,
         spellID = id,
         scale = scale,
         durationSize = size,

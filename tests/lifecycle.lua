@@ -51,7 +51,11 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 120105, 16001 }) do
     assert(active, "native container enabled")
     for _, group in pairs(active.groups) do
       if group.options.maxFrameCount ~= 0 then
-        H.equal(group.options.maxFrameCount, math.huge, "modern groups have no invented per-group cap")
+        H.equal(
+          group.options.maxFrameCount,
+          group.filter:sub(1, 7) == "HELPFUL" and 4 or 6,
+          "native group limit follows its aura type"
+        )
       end
     end
     assert(not state.frames.flyPlateBuffsFixedFrame.scripts.UNIT_AURA)
@@ -97,7 +101,11 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 120105, 16001 }) do
       if active.SetAuraGroupEnabled then
         assert(group.enabled, "Reused groups are re-enabled")
       end
-      H.equal(group.options.maxFrameCount, math.huge, "Reused groups retain unlimited frames")
+      H.equal(
+        group.options.maxFrameCount,
+        group.filter:sub(1, 7) == "HELPFUL" and 4 or 6,
+        "Reused groups retain the correct aura-type limit"
+      )
     end
     H.equal(#state.created, created, "Retirement and reuse retain existing containers and frames")
     writes = state.groupEnableWrites or 0
@@ -152,9 +160,11 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 120105, 16001 }) do
     event(nil, "PLAYER_REGEN_ENABLED")
     state.auras.nameplate1[1].applications = 4
     event(nil, "UNIT_AURA", "nameplate1", { updatedAuraInstanceIDs = { 1 } })
+    state:tick(0)
     H.equal(button.Stacks:GetText(), 4)
     state.auras.nameplate1[1] = nil
     event(nil, "UNIT_AURA", "nameplate1", { removedAuraInstanceIDs = { 1 } })
+    state:tick(0)
     assert(not button.visible and not button.scripts.OnUpdate)
     state.auras.nameplate1[2] = {
       auraInstanceID = 2,
@@ -168,6 +178,7 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 120105, 16001 }) do
       sourceUnit = "player",
     }
     event(nil, "UNIT_AURA", "nameplate1", { addedAuras = { state.auras.nameplate1[2] } })
+    state:tick(0)
     assert(button.visible and button.aura.auraInstanceID == 2)
     event(nil, "NAME_PLATE_UNIT_REMOVED", "nameplate1")
     assert(not button.visible and not button.aura and not button.unit)
@@ -224,6 +235,24 @@ for _, interface in ipairs({ 11509, 20506, 50504, 120100, 120105, 16001 }) do
     event(nil, "ADDON_RESTRICTION_STATE_CHANGED", restriction.Encounter, status.Inactive)
     H.equal(scans, 2, "no settings rebuild when nothing is pending")
     ns.Options.Refresh = refreshOptions
+
+    local reload = H.environment(interface)
+    reload.loggedIn, reload.secret = false, true
+    H.loadAddon(reload)
+    assert(reload.ns.Settings.ready and not reload.ns.Settings.pending, "reload configures before login restrictions")
+    reload.loggedIn = true
+    local reloadEvent = reload.frames.flyPlateBuffsFixedFrame.scripts.OnEvent
+    reload:addPlate("nameplate1")
+    reloadEvent(nil, "NAME_PLATE_UNIT_ADDED", "nameplate1")
+    local reloadActive
+    for _, frame in ipairs(reload.created) do
+      if frame.unit == "nameplate1" and frame.enabled then
+        reloadActive = frame
+      end
+    end
+    assert(reloadActive, "nameplate handling starts without waiting for the PvP restriction to end")
+    reload.ns.Settings:Apply()
+    assert(reload.ns.Settings.pending and reload.ns.Settings.ready, "later restricted settings changes still defer")
 
     local startup = H.environment(interface)
     startup.secret = true

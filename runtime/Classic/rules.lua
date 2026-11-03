@@ -52,11 +52,34 @@ function ClassicRules:Evaluate(profile, aura, friendly)
     return nil
   end
   local style = Appearance:Spell(profile, rule, mine)
-  return { aura = aura, style = style, my = mine, type = aura.isHelpful and "HELPFUL" or "HARMFUL", scale = style.scale }
+  return {
+    aura = aura,
+    style = style,
+    my = mine,
+    type = aura.isHelpful and "HELPFUL" or "HARMFUL",
+    scale = style.scale,
+    expiration = aura.expirationTime,
+  }
 end
 
 function ClassicRules:Sort(profile, records)
   if not profile.disableSort then
     tsort(records, GenerateClosure(compare, profile))
   end
+end
+
+function ClassicRules:OrderChanged(profile, previous, current)
+  if not previous or not current then
+    return true
+  end
+  if profile.disableSort then
+    return false
+  end
+  for index = 1, 4 do
+    local mode = profile.sortMode[index]
+    if mode and mode ~= "disable" and previous[mode] ~= current[mode] then
+      return true
+    end
+  end
+  return false
 end

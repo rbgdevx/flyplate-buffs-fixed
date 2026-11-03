@@ -9,27 +9,33 @@ local GetNamePlates = C_NamePlate.GetNamePlates
 local Appearance = fPB.Appearance
 local AuraContainer = fPB.AuraContainer
 local ModernRules = fPB.ModernRules
+local Reserve = fPB.Reserve
+local StyleResources = fPB.StyleResources
 local Units = fPB.Units
 
 local Runtime = {}
 fPB.Runtime = Runtime
 
 local displays, units = {}, {}
-local profile, appearance, recipes
+local profile
 
 local function disable(display, desired)
   for _, state in pairs(display.containers) do
-    state.frame:SetEnabled(state == desired)
+    AuraContainer:SetEnabled(state, state == desired)
   end
 end
 
 local function update(display, unit)
   local desired
-  if Units:IsAllowed(unit, profile) then
-    local role = Units:IsFriendly(unit) and "friendly" or "enemy"
+  local allowed, friendly = Units:IsAllowed(unit, profile)
+  if allowed then
+    if friendly == nil then
+      friendly = Units:IsFriendly(unit)
+    end
+    local role = friendly and "friendly" or "enemy"
     desired = display.containers[role]
     if not desired then
-      desired = AuraContainer:Create(display.plate, appearance, recipes[role])
+      desired = Reserve:Acquire(role, display.plate)
       display.containers[role] = desired
     end
     desired.frame:SetUnit(unit)
@@ -74,19 +80,19 @@ function Runtime:RefreshUnits()
   end
 end
 
-function Runtime:ApplySettings()
-  local previous = recipes
+function Runtime:ApplySettings(force)
   profile = CopyTable(fPB.db.profile)
-  appearance = Appearance:Build(profile)
-  recipes = { friendly = ModernRules:Build(profile, true), enemy = ModernRules:Build(profile, false) }
-  for _, display in pairs(displays) do
-    for role, state in pairs(display.containers) do
-      AuraContainer:ApplySettings(state, appearance, recipes[role], previous and previous[role])
-    end
-  end
+  local appearance = Appearance:Build(profile)
+  local recipes = { friendly = ModernRules:Build(profile, true), enemy = ModernRules:Build(profile, false) }
+  Reserve:Configure(appearance, recipes, StyleResources:Build(appearance.style), force)
+end
+
+function Runtime:Prepare()
+  Reserve:Resume()
 end
 
 function Runtime:Scan()
+  Reserve:Resume()
   for _, plate in ipairs(GetNamePlates()) do
     local unit = plate:GetUnit()
     if unit then
