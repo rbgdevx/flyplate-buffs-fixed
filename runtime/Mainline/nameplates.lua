@@ -87,6 +87,12 @@ function Runtime:ApplySettings(force)
   Reserve:Configure(appearance, recipes, StyleResources:Build(appearance.style), force)
 end
 
+function Runtime:ApplyDurationLimit(prefix, friendly, helpful)
+  local saved = fPB.db.profile
+  local limit = not saved[prefix .. "NoDurationLimit"] and saved[prefix .. "MaxDuration"]
+  Reserve:ApplyDurationLimit(friendly and "friendly" or "enemy", helpful, limit, saved.hidePermanent)
+end
+
 function Runtime:Prepare()
   Reserve:Resume()
 end

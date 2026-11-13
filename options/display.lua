@@ -10,6 +10,8 @@ local Controls = fPB.Controls
 local Defaults = fPB.Defaults
 local L = fPB.L
 local Options = fPB.Options
+local Settings = fPB.Settings
+local DurationSlider = fPB.DurationSlider
 
 local DisplayOptions = {}
 fPB.DisplayOptions = DisplayOptions
@@ -88,6 +90,38 @@ local function limitControls(key, show, prefix)
   return Controls:Group("", 2, args)
 end
 
+local function durationLimitDisabled(prefix)
+  return InCombatLockdown() or fPB.db.profile[prefix .. "NoDurationLimit"]
+end
+
+local function setDuration(prefix, friendly, helpful, info, value)
+  local profile, key = fPB.db.profile, info[#info]
+  if profile[key] ~= value then
+    profile[key] = value
+    Settings:ApplyDurationLimit(prefix, friendly, helpful)
+    Options:RefreshDurationControls(info)
+  end
+end
+
+local function durationControls(prefix, friendly, helpful)
+  local label = helpful and "Maximum buff duration (seconds)" or "Maximum debuff duration (seconds)"
+  local duration = Controls:Range(label, 1, 1, 120)
+  duration.desc = L["Uses the full duration, not the time left. Permanent auras are hidden while a limit is set."]
+  duration.disabled = GenerateClosure(durationLimitDisabled, prefix)
+  duration.dialogControl = DurationSlider.widgetType
+  local set = GenerateClosure(setDuration, prefix, friendly, helpful)
+  duration.set = set
+
+  local noLimit = Controls:Toggle("No duration limit", 2)
+  noLimit.set = set
+  duration.width, duration.relWidth = "relative", 1 / 3
+  noLimit.width, noLimit.relWidth = "relative", 1 / 3
+  return Controls:Group("", 2.5, {
+    [prefix .. "MaxDuration"] = duration,
+    [prefix .. "NoDurationLimit"] = noLimit,
+  })
+end
+
 local function broadMode(key, helpful)
   local mode = Controls:Select("Show", 2, {
     inherit = L[helpful and "Use friendly buffs setting" or "Use enemy debuffs setting"],
@@ -114,6 +148,7 @@ local function broadSection(key, title, order, helpful, prefix)
   local args = {
     note = Controls:Description("Blizzard supports categories here, not individual spell rules.", 1),
     show = limitControls("mode", broadMode(key, helpful), prefix),
+    duration = durationControls(prefix, not helpful, helpful),
   }
   local categoryOrder = 3
   for _, category in ipairs(categories) do
@@ -150,11 +185,12 @@ end
 local function spellSection(key, title, order, prefix)
   local show = Controls:Select("Show", 2, modes)
   show.width = "double"
-  local categoryKey = key == "showDebuffs" and "enemyDebuffCategories" or "friendlyBuffCategories"
+  local helpful = key == "showBuffs"
+  local categoryKey = helpful and "friendlyBuffCategories" or "enemyDebuffCategories"
   local args = {
     note = Controls:Description("Choose a starting set, then customize individual spells in Spells.", 1),
     show = limitControls(key, show, prefix),
-    showSpacing = Controls:Description("", 2.5),
+    duration = durationControls(prefix, helpful, helpful),
     categoriesNote = Controls:Description(
       "Uncheck a category to hide matching auras that aren't in your spell list.",
       3

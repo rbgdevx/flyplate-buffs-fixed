@@ -33,10 +33,11 @@ local function copy(source)
   return result
 end
 
+local function durationForGroup(group, limit, hidePermanent)
+  return limit or (hidePermanent and not group.exact and mhuge or nil)
+end
+
 local function append(groups, profile, filter, candidates, rule, mine, exact)
-  if profile.hidePermanent and not rule then
-    candidates.maxDuration = mhuge
-  end
   local group = {
     filter = filter .. (mine and "|PLAYER" or "|!PLAYER"),
     candidates = candidates,
@@ -131,8 +132,16 @@ local function limitGroups(groups, profile, friendly)
   local prefix = friendly and "friendly" or "enemy"
   local buffLimit = profile[prefix .. "BuffUnlimited"] and mhuge or profile[prefix .. "BuffLimit"]
   local debuffLimit = profile[prefix .. "DebuffUnlimited"] and mhuge or profile[prefix .. "DebuffLimit"]
+  local buffDuration = not profile[prefix .. "BuffNoDurationLimit"] and profile[prefix .. "BuffMaxDuration"]
+  local debuffDuration = not profile[prefix .. "DebuffNoDurationLimit"] and profile[prefix .. "DebuffMaxDuration"]
   for _, group in ipairs(groups) do
-    group.maxFrameCount = ssub(group.filter, 1, 7) == "HELPFUL" and buffLimit or debuffLimit
+    local maxDuration
+    if ssub(group.filter, 1, 7) == "HELPFUL" then
+      group.maxFrameCount, maxDuration = buffLimit, buffDuration
+    else
+      group.maxFrameCount, maxDuration = debuffLimit, debuffDuration
+    end
+    group.candidates.maxDuration = durationForGroup(group, maxDuration, profile.hidePermanent)
   end
 end
 
@@ -147,6 +156,20 @@ local function compare(order, a, b)
     return a.style.scale > b.style.scale
   end
   return a.order < b.order
+end
+
+function ModernRules:UpdateDurationLimit(groups, helpful, limit, hidePermanent)
+  local changed = {}
+  for index, group in ipairs(groups) do
+    if (ssub(group.filter, 1, 7) == "HELPFUL") == helpful then
+      local duration = durationForGroup(group, limit, hidePermanent)
+      if group.candidates.maxDuration ~= duration then
+        group.candidates.maxDuration = duration
+        changed[#changed + 1] = index
+      end
+    end
+  end
+  return changed
 end
 
 function ModernRules:SortGroups(groups, order)

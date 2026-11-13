@@ -188,6 +188,16 @@ function AuraContainer:ApplySettings(state, profile, recipe, previousRecipe, res
   configure(state, profile, recipe, previousRecipe, resources, force)
 end
 
+function AuraContainer:ApplyCandidateFilters(state, recipe, indices)
+  for _, index in ipairs(indices) do
+    -- A reserve container can still be under construction.
+    if not state.groups[index] then
+      break
+    end
+    state.frame:SetAuraGroupCandidateFilters(tostring(index), recipe[index].candidates)
+  end
+end
+
 function AuraContainer:Attach(state, plate, profile)
   state.plate = plate
   state.frame:SetParent(plate)

@@ -1,5 +1,9 @@
 # flyPlateBuffsFixed
 
+## [v12.1.5.3](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.3) (2026-11-12)
+
+- Adding optional duration limits for friendly and enemy buffs and debuffs in Retail and Forever
+
 ## [v12.1.5.2](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.2) (2026-11-03)
 
 - Improving performance in large fights
