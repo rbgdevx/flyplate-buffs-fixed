@@ -7,6 +7,7 @@ local GetTimePreciseSec = GetTimePreciseSec
 local tremove = table.remove
 
 local AuraContainer = fPB.AuraContainer
+local ModernRules = fPB.ModernRules
 local Restrictions = fPB.Restrictions
 
 local Reserve = {}
@@ -100,6 +101,16 @@ function Reserve:Configure(appearance, nextRecipes, nextResources, force)
     finishPreparation()
   end
   Reserve:Resume()
+end
+
+function Reserve:ApplyDurationLimit(role, helpful, limit, hidePermanent)
+  local recipe = recipes[role]
+  local indices = ModernRules:UpdateDurationLimit(recipe, helpful, limit, hidePermanent)
+  if #indices > 0 then
+    for _, state in ipairs(pools[role].all) do
+      AuraContainer:ApplyCandidateFilters(state, recipe, indices)
+    end
+  end
 end
 
 function Reserve:Acquire(role, plate)

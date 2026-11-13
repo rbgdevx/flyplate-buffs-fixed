@@ -590,6 +590,7 @@ function Helpers.environment(interface, saved)
   end
   function media.RegisterCallback() end
   local gui = env.LibStub:NewLibrary("AceGUI-3.0", 999)
+  function gui:RegisterWidgetType() end
   function gui:Create()
     local widget = frame()
     widget.frame = frame()

@@ -21,3 +21,11 @@ function Settings:Apply(force)
   Settings.ready, Settings.pending = true, false
   Runtime:Scan()
 end
+
+function Settings:ApplyDurationLimit(prefix, friendly, helpful)
+  if not Settings.ready or Settings.pending or Restrictions:Active() then
+    Settings:Apply()
+    return
+  end
+  Runtime:ApplyDurationLimit(prefix, friendly, helpful)
+end

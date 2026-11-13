@@ -21,6 +21,7 @@ local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 local reopenAfterCombat = false
+local blizzardPanel
 
 local function getValue(info)
   local key = info[#info]
@@ -143,13 +144,22 @@ function Options:TogglePreview()
   updatePreviewButton()
 end
 
+function Options:RefreshDurationControls(info)
+  local window = AceConfigDialog.OpenFrames[addonName]
+  -- Ace refreshes the originating dialog on toggle and slider commit.
+  -- The slider already displays its new value after a mouse wheel change.
+  if info.uiType ~= "dialog" or (window and window:IsVisible() and blizzardPanel:IsVisible()) then
+    Options:Refresh()
+  end
+end
+
 function Options:Initialize(callback)
   Options:SetCallbacks(callback, GenerateClosure(Preview.Refresh, Preview))
   AceConfig:RegisterOptionsTable(addonName, build)
   AceConfigDialog:SetDefaultSize(addonName, 900, 650)
   local spellStatus = AceConfigDialog:GetStatusTable(addonName, { "spells" })
   spellStatus.groups = spellStatus.groups or { treewidth = 230 }
-  AceConfigDialog:AddToBlizOptions(addonName, addonName)
+  blizzardPanel = AceConfigDialog:AddToBlizOptions(addonName, addonName)
   -- AceConfig tree clicks have no option-table callback; observe the displayed group.
   hooksecurefunc(AceConfigDialog, "FeedGroup", groupShown)
   hooksecurefunc(AceConfigDialog, "Open", windowOpened)
