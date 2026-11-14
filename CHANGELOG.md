@@ -2,7 +2,7 @@
 
 ## [v12.1.5.4](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.4) (2026-11-14)
 
-- Fixing the settings preview on Retail 12.1.7
+- Fixed the settings preview error
 
 ## [v12.1.5.3](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.3) (2026-11-12)
 
