@@ -2,7 +2,7 @@
 
 ## [v12.1.5.4](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.4) (2026-11-14)
 
-- Fixed the settings preview error
+- Updated the nameplate preview in settings
 
 ## [v12.1.5.3](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.3) (2026-11-12)
 
