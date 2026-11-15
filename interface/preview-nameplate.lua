@@ -85,9 +85,8 @@ local function setSampleValues(unitFrame)
 end
 
 local function setSampleBadge(unitFrame)
-  -- Forever's badge has a display predicate; Retail's separate PvP badge does not.
   local levelBadge = unitFrame.PlayerLevelDiffFrame
-  if levelBadge and levelBadge.ShouldDisplay then
+  if levelBadge and levelBadge.ShouldDisplay and levelBadge.highLevelTexture then
     levelBadge.ShouldDisplay = showSampleLevel
     levelBadge.playerLevelDiffText:SetPoint("CENTER", levelBadge.playerLevelDiffIcon, "CENTER", 0, 0)
     levelBadge.playerLevelDiffText:SetText("60")
