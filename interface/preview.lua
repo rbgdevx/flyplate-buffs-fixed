@@ -105,9 +105,17 @@ local function openElement(kind)
   Options:Open(kind == "auras" and "position" or "style")
 end
 
+local function refreshNameplate()
+  if dock:IsVisible() then
+    scene.plate:Refresh()
+    Preview:Refresh()
+  end
+end
+
 local function changed(_, event, name)
   if dock:IsVisible() and (event == "DISPLAY_SIZE_CHANGED" or nameplateCVars[name]) then
-    After(0, GenerateClosure(Preview.Refresh, Preview))
+    -- Run after Blizzard updates the nameplate options and size.
+    After(0, refreshNameplate)
   end
 end
 
