@@ -1,5 +1,9 @@
 # flyPlateBuffsFixed
 
+## [v12.1.5.5](https://github.com/rbgdevx/flyplate-buffs-fixed/releases/tag/v12.1.5.5) (2026-11-18)
+
+- Improving preview performance
+
 ## [v12.1.5.4](https://github.com/rbgdevx/flyPlateBuffsFixed/releases/tag/v12.1.5.4) (2026-11-14)
 
 - Updated preview window (preparing for next patch)

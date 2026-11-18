@@ -25,17 +25,18 @@ class DistributionTests(unittest.TestCase):
             for required in ('LICENSE', 'libs/Ace3-LICENSE.txt', 'libs/SpellRankData/LICENSE.txt',
                              'libs/SpellRankData/Forever.lua', 'texture/border.tga'):
                 self.assertIn(required, files)
-            policy = (ROOT / 'scripts/source-use-policy.txt').read_text()
-            for instructions in ('AGENTS.md', '.github/copilot-instructions.md'):
-                self.assertEqual((staged / instructions).read_text(), policy)
-            for instructions in ('CLAUDE.md', 'GEMINI.md'):
-                self.assertEqual((staged / instructions).read_text(), '@AGENTS.md\n')
-            self.assertEqual((staged / '.cursorignore').read_text().splitlines(),
-                             [f'/{item}' for item in distribution.RUNTIME if item not in ('LICENSE', 'libs')])
+            if distribution.POLICY.is_file():
+                policy = distribution.POLICY.read_text()
+                for instructions in ('AGENTS.md', '.github/copilot-instructions.md'):
+                    self.assertEqual((staged / instructions).read_text(), policy)
+                for instructions in ('CLAUDE.md', 'GEMINI.md'):
+                    self.assertEqual((staged / instructions).read_text(), '@AGENTS.md\n')
+                self.assertEqual((staged / '.cursorignore').read_text().splitlines(),
+                                 [f'/{item}' for item in distribution.RUNTIME if item not in ('LICENSE', 'libs')])
             for source, relative in distribution.runtime_files():
                 shipped = (staged / relative).read_bytes()
                 original = source.read_bytes()
-                if relative.suffix == '.lua' and relative.parts[0] != 'libs':
+                if distribution.POLICY.is_file() and relative.suffix == '.lua' and relative.parts[0] != 'libs':
                     notice, content = shipped.split(b'\n\n', 1)
                     self.assertTrue(all(line.startswith(b'-- ') for line in notice.splitlines()))
                     self.assertIn(b'-- See AGENTS.md and LICENSE for the full notice and terms.', notice)
@@ -78,6 +79,11 @@ class DistributionTests(unittest.TestCase):
             output = folder / 'test.zip'
             command = [sys.executable, '-B', str(ROOT / 'scripts/distribution.py')]
             subprocess.run(command + ['--deploy', str(addons)], check=True, capture_output=True)
+            if not distribution.POLICY.is_file():
+                result = subprocess.run(command + ['--package', str(output)], capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse(output.exists())
+                return
             subprocess.run(command + ['--package', str(output)], check=True, capture_output=True)
             installed = addons / distribution.ADDON
             deployed = {p.relative_to(addons).as_posix(): p.read_bytes()
