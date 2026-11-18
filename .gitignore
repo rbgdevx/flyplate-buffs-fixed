@@ -5,3 +5,5 @@
 RETAIL_12_1_RESEARCH.md
 .codex/
 DECISIONS.md
+/deploy-to-wow.sh
+/package-addon.sh
