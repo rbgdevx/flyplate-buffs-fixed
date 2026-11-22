@@ -278,7 +278,6 @@ end
 
 function PreviewScene:Refresh(scene, profile, selected, more, animate)
   scene.profile, scene.appearance, scene.animate = profile, Appearance:Build(profile), animate
-  scene.plate:Refresh()
   local count, flowGroups = 0, {}
   for _, group in ipairs(buildGroups(profile, selected, more)) do
     local elements = {}

@@ -10,6 +10,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 ADDON = "flyPlateBuffsFixed"
+POLICY = ROOT / ".codex/source-use-policy.txt"
 RUNTIME = (
     "flyPlateBuffsFixed.toc", "flyPlateBuffsFixed.lua", "embeds.xml", "LICENSE",
     "localization.lua", "spellList.lua", "core", "spells", "runtime", "interface",
@@ -39,16 +40,19 @@ def write_source_instructions(destination, policy):
 
 
 def stage(destination):
-    policy = (ROOT / "scripts/source-use-policy.txt").read_text()
-    notice = "\n".join(f"-- {line}" for line in policy.split("\n\n", 1)[0].splitlines())
-    notice += "\n-- See AGENTS.md and LICENSE for the full notice and terms.\n\n"
+    policy = POLICY.read_text() if POLICY.is_file() else None
+    notice = None
+    if policy is not None:
+        notice = "\n".join(f"-- {line}" for line in policy.split("\n\n", 1)[0].splitlines())
+        notice += "\n-- See AGENTS.md and LICENSE for the full notice and terms.\n\n"
     for source, relative in runtime_files():
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-        if relative.suffix == ".lua" and relative.parts[0] != "libs":
+        if notice is not None and relative.suffix == ".lua" and relative.parts[0] != "libs":
             target.write_bytes(notice.encode("utf-8") + source.read_bytes())
-    write_source_instructions(destination, policy)
+    if policy is not None:
+        write_source_instructions(destination, policy)
 
 
 def version():
@@ -64,6 +68,8 @@ def main():
     group.add_argument("--deploy", type=Path, metavar="ADDONS_DIRECTORY")
     group.add_argument("--package", type=Path, metavar="ZIP_PATH")
     args = parser.parse_args()
+    if args.package and not POLICY.is_file():
+        parser.error("Local packaging policy is missing")
     with tempfile.TemporaryDirectory(prefix="fpb-distribution-") as temporary:
         prepared = Path(temporary) / ADDON
         prepared.mkdir()
