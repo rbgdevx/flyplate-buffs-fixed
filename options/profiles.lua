@@ -2,6 +2,8 @@ local _, fPB = ...
 
 local ipairs = ipairs
 local next = next
+local CreateFrame = CreateFrame
+local LibStub = LibStub
 
 local Controls = fPB.Controls
 local Database = fPB.Database
@@ -10,6 +12,54 @@ local Options = fPB.Options
 
 local ProfileOptions = {}
 fPB.ProfileOptions = ProfileOptions
+
+local profileInputType = "FPBFProfileInput"
+local AceGUI = LibStub("AceGUI-3.0")
+
+local function updateCreateButton(widget)
+  widget.createButton:SetEnabled(not widget.disabled and Database:IsValidProfileName(widget:GetText()))
+end
+
+local function profileNameChanged(editbox)
+  updateCreateButton(editbox.obj)
+end
+
+local function submitProfileName(button)
+  local editbox = button.input
+  editbox:ClearFocus()
+  editbox:GetScript("OnEnterPressed")(editbox)
+end
+
+local function acquireInput(widget)
+  widget.acquireEditBox(widget)
+  widget:DisableButton(true)
+  updateCreateButton(widget)
+end
+
+local function setInputDisabled(widget, disabled)
+  widget.setEditBoxDisabled(widget, disabled)
+  updateCreateButton(widget)
+end
+
+local function createInput()
+  local widget = AceGUI.WidgetRegistry.EditBox()
+  widget.type = profileInputType
+  local editbox = widget.editbox
+  local button = CreateFrame("Button", nil, widget.frame, "UIPanelButtonTemplate")
+  button:SetSize(85, 24)
+  button:SetPoint("BOTTOMRIGHT")
+  button:SetText(L["Create"])
+  button.input = editbox
+  button:SetScript("OnClick", submitProfileName)
+  editbox:SetPoint("BOTTOMRIGHT", widget.frame, "BOTTOMRIGHT", -95, 0)
+  editbox:HookScript("OnTextChanged", profileNameChanged)
+  widget.createButton = button
+  widget.acquireEditBox, widget.OnAcquire = widget.OnAcquire, acquireInput
+  widget.setEditBoxDisabled, widget.SetDisabled = widget.SetDisabled, setInputDisabled
+  return widget
+end
+
+AceGUI:RegisterWidgetType(profileInputType, createInput, 1)
 
 local function getCurrent()
   return Database:GetCurrentProfile()
@@ -36,6 +86,34 @@ local function resetProfile()
   Database:ResetProfile()
 end
 
+local sections = {
+  {
+    key = "choose",
+    title = "Profiles",
+    description = "Share aura settings and spell rules between characters. Each character remembers its selected profile.",
+  },
+  {
+    key = "new",
+    title = "New profile",
+    description = "New profiles start with the default aura settings and spell list.",
+  },
+  {
+    key = "copy",
+    title = "Copy settings",
+    description = "Replace the current profile with a copy of another.",
+  },
+  {
+    key = "reset",
+    title = "Reset profile",
+    description = "Restore this profile's default aura settings and spell list.",
+  },
+  {
+    key = "delete",
+    title = "Delete profile",
+    description = "Delete a profile you are not currently using.",
+  },
+}
+
 function ProfileOptions:Build()
   local current = Database:GetCurrentProfile()
   local profiles, others, order, otherOrder = {}, {}, {}, {}
@@ -52,10 +130,9 @@ function ProfileOptions:Build()
     name = L["Profiles"],
     order = 7,
     args = {
-      current = Controls:Description(L["Current profile:"] .. " " .. current, 1),
       choose = {
         type = "select",
-        name = L["Existing profiles"],
+        name = L["Current profile"],
         order = 2,
         width = "double",
         values = profiles,
@@ -65,9 +142,10 @@ function ProfileOptions:Build()
       },
       new = {
         type = "input",
-        name = L["New profile"],
+        name = L["Profile name"],
         order = 3,
         width = "double",
+        dialogControl = profileInputType,
         get = false,
         set = selectProfile,
         validate = validateName,
@@ -77,7 +155,6 @@ function ProfileOptions:Build()
         name = L["Copy from"],
         order = 4,
         width = "double",
-        desc = L["Replace this profile's settings with another profile's settings."],
         values = others,
         sorting = otherOrder,
         get = false,
@@ -87,7 +164,7 @@ function ProfileOptions:Build()
       },
       reset = {
         type = "execute",
-        name = L["Reset profile"],
+        name = L["Reset current profile"],
         order = 5,
         width = "double",
         confirm = true,
@@ -110,9 +187,12 @@ function ProfileOptions:Build()
       },
     },
   }
-  for _, key in ipairs({ "choose", "new", "copy", "reset", "delete" }) do
-    local control = page.args[key]
-    page.args[key .. "Row"] = Controls:Row(control.order, { [key] = control })
+  for index, section in ipairs(sections) do
+    local key = section.key
+    local sectionOrder = (index - 1) * 3 + 1
+    page.args[key .. "Heading"] = { type = "header", name = L[section.title], order = sectionOrder }
+    page.args[key .. "Description"] = Controls:Description(section.description, sectionOrder + 1)
+    page.args[key .. "Row"] = Controls:Row(sectionOrder + 2, { [key] = page.args[key] })
     page.args[key] = nil
   end
   return page
