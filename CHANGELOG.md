@@ -2,7 +2,7 @@
 
 ## [v12.1.5.6](https://github.com/rbgdevx/flyplate-buffs-fixed/releases/tag/v12.1.5.6) (2026-11-28)
 
-- Updated the Profiles layout with section descriptions and a Create button
+- Improved profile creation
 
 ## [v12.1.5.5](https://github.com/rbgdevx/flyplate-buffs-fixed/releases/tag/v12.1.5.5) (2026-11-22)
 
